@@ -10,90 +10,326 @@ class Position
             return $this->delete();
         }
 
-        return $this->list();
+        return $this->details();
     }
 
-    private function list(): string
+    private function details(): string
     {
         global $db;
         $userId = $_SESSION['user_id'];
         $kid = (int) ($_GET['id'] ?? 0);
 
+        // Fetch keyword and verify ownership
         $keyword = $db->fetchOne(
             'SELECT * FROM `keywords` WHERE `k_id` = ? AND `user_id` = ?',
             [$kid, $userId]
         );
 
         if (!$keyword) {
-            redirect(APP_URL . '/index.php?op=keywords');
+            redirect(APP_URL . '/index.php?op=dashboard');
         }
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
-                redirect(APP_URL . '/index.php?op=positions&id=' . $kid);
-            }
+        // Count distinct users tracking this exact keyword phrase
+        $adoptionRow = $db->fetchOne(
+            'SELECT COUNT(DISTINCT `user_id`) AS `count` FROM `keywords` WHERE LOWER(`name`) = LOWER(?)',
+            [$keyword['name']]
+        );
+        $adoptionCount = (int) ($adoptionRow['count'] ?? 0);
 
-            $position = (int) ($_POST['position'] ?? 0);
-            if ($position >= POSITION_MIN && $position <= POSITION_MAX) {
-                $db->insert('positions', [
-                    'keyword_id' => $kid,
-                    'position' => $position,
-                ]);
-                redirect(APP_URL . '/index.php?op=positions&id=' . $kid);
-            }
-        }
-
-        $positions = $db->fetchAll(
-            'SELECT * FROM `positions` WHERE `keyword_id` = ? ORDER BY `created_at` DESC',
+        // Fetch all position history (ASC for chart)
+        $positionsAsc = $db->fetchAll(
+            'SELECT `position`, `date` FROM `positions` WHERE `keyword_id` = ? ORDER BY `date` ASC',
             [$kid]
         );
 
+        // Fetch all position history (DESC for table)
+        $positionsDesc = $db->fetchAll(
+            'SELECT `p_id`, `position`, `date` FROM `positions` WHERE `keyword_id` = ? ORDER BY `date` DESC',
+            [$kid]
+        );
+
+        $csrfToken = generateCsrfToken();
+        $appUrl = APP_URL;
+        $keywordName = sanitize($keyword['name']);
+
+        // Prepare chart data as JSON
+        $chartLabels = array_map(fn($p) => $p['date'], $positionsAsc);
+        $chartData = array_map(fn($p) => $p['position'], $positionsAsc);
+        $chartLabelsJson = json_encode($chartLabels);
+        $chartDataJson = json_encode($chartData);
+
+        // Build table rows
+        $tableRows = $this->buildTableRows($positionsDesc);
+
+        // Position badge helper values
+        $currentPosition = !empty($positionsDesc) ? (int) $positionsDesc[0]['position'] : null;
+        $positionBadge = $currentPosition !== null ? $this->getPositionBadge($currentPosition) : '-';
+
+        return '
+        <div class="max-w-6xl mx-auto p-6">
+            <div class="mb-6">
+                <a href="' . $appUrl . '/index.php?op=dashboard"
+                    class="text-blue-500 hover:underline">&larr; Back to Dashboard</a>
+            </div>
+
+            <div class="flex flex-wrap justify-between items-start gap-4 mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold">' . $keywordName . '</h1>
+                    <p class="text-gray-500 mt-1">Current Rank: ' . $positionBadge . '</p>
+                </div>
+                <div class="bg-white rounded-lg shadow px-6 py-4 text-center">
+                    <p class="text-sm text-gray-500">Users Tracking</p>
+                    <p class="text-2xl font-bold text-blue-600">' . $adoptionCount . '</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4">Ranking History</h2>
+                <div id="chart-wrapper" class="relative" style="height: 350px;">
+                    <canvas id="ranking-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="px-6 py-4 border-b">
+                    <h2 class="text-lg font-semibold">Position History</h2>
+                </div>
+                <div id="history-empty" class="hidden px-6 py-12 text-center text-gray-500">
+                    No position records yet. Use Refresh Positions on the dashboard to generate data.
+                </div>
+                <div id="history-content">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="py-3 px-4 text-left w-16">#</th>
+                                <th class="py-3 px-4 text-left">Date</th>
+                                <th class="py-3 px-4 text-left">Position</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">' . $tableRows . '</tbody>
+                    </table>
+                </div>
+                <div id="pagination-controls" class="flex justify-between items-center px-6 py-4 border-t">
+                    <button id="prev-page"
+                        class="px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
+                    <div id="page-numbers" class="flex gap-1"></div>
+                    <button id="next-page"
+                        class="px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        (function () {
+            "use strict";
+
+            var PAGE_SIZE = 10;
+            var currentPage = 1;
+            var allRows = ' . json_encode($positionsDesc) . ';
+
+            // --- Chart ---
+            var chartLabels = ' . $chartLabelsJson . ';
+            var chartData = ' . $chartDataJson . ';
+
+            function initChart() {
+                var ctx = document.getElementById("ranking-chart");
+                if (!ctx || chartLabels.length === 0) {
+                    var wrapper = document.getElementById("chart-wrapper");
+                    if (wrapper) {
+                        wrapper.innerHTML = \'<div class="flex items-center justify-center h-full text-gray-400">No data available for chart</div>\';
+                    }
+                    return;
+                }
+                new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: chartLabels,
+                        datasets: [{
+                            label: "Rank",
+                            data: chartData,
+                            borderColor: "rgb(59, 130, 246)",
+                            backgroundColor: "rgba(59, 130, 246, 0.1)",
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        return "Rank #" + context.parsed.y;
+                                    }
+                                }
+                            },
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                reverse: true,
+                                min: 1,
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: "Position"
+                                },
+                                ticks: {
+                                    stepSize: 10
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: "Date"
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // --- Pagination ---
+            var tbody = document.getElementById("history-table-body");
+            var prevBtn = document.getElementById("prev-page");
+            var nextBtn = document.getElementById("next-page");
+            var pageNumbers = document.getElementById("page-numbers");
+            var historyEmpty = document.getElementById("history-empty");
+            var historyContent = document.getElementById("history-content");
+            var paginationControls = document.getElementById("pagination-controls");
+
+            function escapeHtml(str) {
+                var div = document.createElement("div");
+                div.appendChild(document.createTextNode(str));
+                return div.innerHTML;
+            }
+
+            function getPositionBadgeHtml(pos) {
+                var color;
+                if (pos <= 3) { color = "bg-green-100 text-green-800"; }
+                else if (pos <= 10) { color = "bg-blue-100 text-blue-800"; }
+                else if (pos <= 20) { color = "bg-yellow-100 text-yellow-800"; }
+                else { color = "bg-gray-100 text-gray-800"; }
+                return \'<span class="px-2 py-1 rounded-full text-xs font-medium \' + color + \'">#\' + pos + \'</span>\';
+            }
+
+            function getTotalPages() {
+                return Math.max(1, Math.ceil(allRows.length / PAGE_SIZE));
+            }
+
+            function renderTable() {
+                var total = allRows.length;
+
+                if (total === 0) {
+                    historyEmpty.classList.remove("hidden");
+                    historyContent.classList.add("hidden");
+                    paginationControls.classList.add("hidden");
+                    return;
+                }
+
+                historyEmpty.classList.add("hidden");
+                historyContent.classList.remove("hidden");
+                paginationControls.classList.remove("hidden");
+
+                var start = (currentPage - 1) * PAGE_SIZE;
+                var end = Math.min(start + PAGE_SIZE, total);
+                var slice = allRows.slice(start, end);
+
+                var html = "";
+                for (var i = 0; i < slice.length; i++) {
+                    var row = slice[i];
+                    var rowNum = start + i + 1;
+                    html += \'<tr class="border-b hover:bg-gray-50">\';
+                    html += \'<td class="py-3 px-4 text-gray-500">\' + rowNum + \'</td>\';
+                    html += \'<td class="py-3 px-4">\'+ escapeHtml(row.date) +\'</td>\';
+                    html += \'<td class="py-3 px-4">\' + getPositionBadgeHtml(row.position) + \'</td>\';
+                    html += \'</tr>\';
+                }
+                tbody.innerHTML = html;
+
+                renderPagination();
+            }
+
+            function renderPagination() {
+                var total = getTotalPages();
+                pageNumbers.innerHTML = "";
+
+                for (var i = 1; i <= total; i++) {
+                    var btn = document.createElement("button");
+                    btn.textContent = i;
+                    btn.className = "px-3 py-1 text-sm border rounded " +
+                        (i === currentPage ? "bg-blue-500 text-white" : "hover:bg-gray-50");
+                    btn.dataset.page = i;
+                    btn.addEventListener("click", function () {
+                        currentPage = parseInt(this.dataset.page, 10);
+                        renderTable();
+                    });
+                    pageNumbers.appendChild(btn);
+                }
+
+                prevBtn.disabled = currentPage <= 1;
+                nextBtn.disabled = currentPage >= total;
+            }
+
+            prevBtn.addEventListener("click", function () {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                }
+            });
+
+            nextBtn.addEventListener("click", function () {
+                if (currentPage < getTotalPages()) {
+                    currentPage++;
+                    renderTable();
+                }
+            });
+
+            // --- Init ---
+            initChart();
+            renderTable();
+        })();
+        </script>';
+    }
+
+    private function buildTableRows(array $positions): string
+    {
         $rows = '';
-        foreach ($positions as $pos) {
+        $total = count($positions);
+        $end = min($total, 10);
+
+        for ($i = 0; $i < $end; $i++) {
+            $pos = $positions[$i];
             $rows .= '
-                <tr class="border-b">
-                    <td class="py-2 px-4">' . $pos['position'] . '</td>
-                    <td class="py-2 px-4 text-sm text-gray-500">' . sanitize($pos['created_at']) . '</td>
-                    <td class="py-2 px-4">
-                        <a href="' . sanitize(APP_URL . '/index.php?op=delete_position&id=' . $pos['p_id'] . '&kwid=' . $kid) . '"
-                            class="text-red-500 hover:underline">Delete</a>
-                    </td>
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="py-3 px-4 text-gray-500">' . ($i + 1) . '</td>
+                    <td class="py-3 px-4">' . sanitize($pos['date']) . '</td>
+                    <td class="py-3 px-4">' . $this->getPositionBadge((int) $pos['position']) . '</td>
                 </tr>';
         }
 
-        return '
-        <div class="max-w-4xl mx-auto p-6">
-            <div class="mb-6">
-                <h1 class="text-2xl font-bold">' . sanitize($keyword['name']) . '</h1>
-                <a href="' . sanitize(APP_URL . '/index.php?op=keywords') . '" class="text-blue-500 hover:underline">&larr; Back to Keywords</a>
-            </div>
+        return $rows;
+    }
 
-            <div class="bg-white p-4 rounded-lg shadow mb-6">
-                <form method="POST" action="' . sanitize(APP_URL . '/index.php?op=positions&id=' . $kid) . '" class="flex gap-2 items-end">
-                    <input type="hidden" name="csrf_token" value="' . generateCsrfToken() . '">
-                    <div>
-                        <label class="block text-sm font-medium mb-1" for="position">Add Position (' . POSITION_MIN . '-' . POSITION_MAX . ')</label>
-                        <select id="position" name="position"
-                            class="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            ' . $this->getPositionOptions() . '
-                        </select>
-                    </div>
-                    <button type="submit"
-                        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add</button>
-                </form>
-            </div>
+    private function getPositionBadge(int $position): string
+    {
+        if ($position <= 3) {
+            $color = 'bg-green-100 text-green-800';
+        } elseif ($position <= 10) {
+            $color = 'bg-blue-100 text-blue-800';
+        } elseif ($position <= 20) {
+            $color = 'bg-yellow-100 text-yellow-800';
+        } else {
+            $color = 'bg-gray-100 text-gray-800';
+        }
 
-            <table class="w-full bg-white rounded-lg shadow">
-                <thead>
-                    <tr class="bg-gray-100">
-                        <th class="py-2 px-4 text-left">Position</th>
-                        <th class="py-2 px-4 text-left">Recorded</th>
-                        <th class="py-2 px-4 text-left">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>' . $rows . '</tbody>
-            </table>
-        </div>';
+        return '<span class="px-2 py-1 rounded-full text-xs font-medium ' . $color . '">#' . $position . '</span>';
     }
 
     private function delete(): string
@@ -109,14 +345,5 @@ class Position
         );
 
         redirect(APP_URL . '/index.php?op=positions&id=' . $kid);
-    }
-
-    private function getPositionOptions(): string
-    {
-        $options = '';
-        for ($i = POSITION_MIN; $i <= POSITION_MAX; $i++) {
-            $options .= '<option value="' . $i . '">' . $i . '</option>';
-        }
-        return $options;
     }
 }

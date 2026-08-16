@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo sanitize($pageTitle ?? APP_NAME); ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
     <link rel="stylesheet" href="<?php echo sanitize(APP_URL); ?>/assets/styles.css">
     <script src="<?php echo sanitize(APP_URL); ?>/assets/script.js" defer></script>
 </head>
