@@ -16,9 +16,6 @@ class Database
             PDO::ATTR_EMULATE_PREPARES   => false,
         ]);
 
-        if (DB_DRIVER === 'sqlite') {
-            $this->pdo->exec('PRAGMA foreign_keys = ON;');
-        }
 
         if ($isNewDb) {
             $this->initSchema();

@@ -7,16 +7,19 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS keywords (
     k_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
+    user_id INTEGER,
     name TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(u_id) ON DELETE CASCADE
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS positions (
     p_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    keyword_id INTEGER NOT NULL,
-    position INTEGER NOT NULL CHECK(position BETWEEN 1 AND 100),
+    keyword_id INTEGER,
+    position INTEGER CHECK(position BETWEEN 1 AND 100),
+    date DATE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (keyword_id) REFERENCES keywords(k_id) ON DELETE CASCADE
+    UNIQUE(`keyword_id`, `date`)
 );
+
+CREATE INDEX IF NOT EXISTS `idx_positions_keyword_id` ON `positions`(`keyword_id`);
+CREATE INDEX IF NOT EXISTS `idx_positions_date` ON `positions`(`date`);

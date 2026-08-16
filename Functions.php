@@ -41,3 +41,62 @@ function verifyCsrfToken(string $token): bool
 {
     return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
 }
+
+function jsonResponse(array $data, int $statusCode = 200): void
+{
+    http_response_code($statusCode);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($data);
+    exit;
+}
+
+function getKeywordsWithPositions(int $userId): array
+{
+    global $db;
+
+    $rows = $db->fetchAll(
+        'SELECT
+            k.`k_id`,
+            k.`name`,
+            latest.`position` AS `current_position`,
+            week_ago.`position` AS `previous_position`
+        FROM `keywords` k
+        LEFT JOIN (
+            SELECT `keyword_id`, `position`,
+                   ROW_NUMBER() OVER (PARTITION BY `keyword_id` ORDER BY `date` DESC) AS `rn`
+            FROM `positions`
+        ) latest ON latest.`keyword_id` = k.`k_id` AND latest.`rn` = 1
+        LEFT JOIN (
+            SELECT `keyword_id`, `position`,
+                   ROW_NUMBER() OVER (PARTITION BY `keyword_id` ORDER BY `date` DESC) AS `rn`
+            FROM `positions`
+            WHERE `date` <= DATE(\'now\', \'-7 days\')
+        ) week_ago ON week_ago.`keyword_id` = k.`k_id` AND week_ago.`rn` = 1
+        WHERE k.`user_id` = ?
+        ORDER BY k.`created_at` DESC',
+        [$userId]
+    );
+
+    foreach ($rows as &$row) {
+        $row['trend'] = calculateTrend($row['current_position'], $row['previous_position']);
+    }
+
+    return $rows;
+}
+
+function calculateTrend(?int $current, ?int $previous): string
+{
+    if ($current === null || $previous === null) {
+        return 'stable';
+    }
+
+    if ($current < $previous) {
+        return 'improved';
+    }
+
+    if ($current > $previous) {
+        return 'declined';
+    }
+
+    return 'stable';
+}

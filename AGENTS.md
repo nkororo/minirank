@@ -25,3 +25,4 @@ PHP project for keyword position tracker on simulated data.
 - SQLite database files (`database.sqlite`, `*.db`) and `.env` are gitignored
 - Apply DRY principle. If something repeats make it a function.
 - Each SQL query it will have indexes.
+- Always comment the code.

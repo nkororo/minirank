@@ -15,8 +15,6 @@
                 class="text-xl font-bold text-blue-600"><?php echo sanitize(APP_NAME); ?></a>
             <div class="flex gap-4 items-center">
                 <?php if (isLoggedIn()): ?>
-                    <a href="<?php echo sanitize(APP_URL); ?>/index.php?op=keywords"
-                        class="text-gray-700 hover:text-blue-500">Keywords</a>
                     <a href="<?php echo sanitize(APP_URL); ?>/index.php?op=logout"
                         class="text-red-500 hover:underline">Logout</a>
                 <?php else: ?>
