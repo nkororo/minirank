@@ -24,3 +24,4 @@ PHP project for keyword position tracker on simulated data.
 - All constant variables need to be defined in `parameters.php` with uppercase. Example: `define('CONSTANT_NAME', $value)`.
 - SQLite database files (`database.sqlite`, `*.db`) and `.env` are gitignored
 - Apply DRY principle. If something repeats make it a function.
+- Each SQL query it will have indexes.

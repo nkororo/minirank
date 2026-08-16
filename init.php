@@ -24,12 +24,7 @@ require_once __DIR__ . '/Functions.php';
 require_once __DIR__ . '/arrays.php';
 require_once __DIR__ . '/libraries/Database.php';
 
-try {
-    $dsn = DB_DRIVER . ':dbname=' . DB_PATH;
-    $db = new Database($dsn);
-} catch (PDOException $e) {
-    die('Database connection failed: ' . $e->getMessage());
-}
+$db = new Database();
 
 $currentOp = $_GET['op'] ?? 'dashboard';
 if (!isLoggedIn() && !isPublicOp($currentOp)) {

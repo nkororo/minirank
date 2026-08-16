@@ -4,12 +4,31 @@ class Database
 {
     private PDO $pdo;
 
-    public function __construct(string $dsn, string $username = '', string $password = '')
+    public function __construct()
     {
-        $this->pdo = new PDO($dsn, $username, $password, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        $isNewDb = !file_exists(DB_PATH);
+
+        $dsn = DB_DRIVER . ':' . DB_PATH;
+
+        $this->pdo = new PDO($dsn, null, null, [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES   => false,
         ]);
+
+        if (DB_DRIVER === 'sqlite') {
+            $this->pdo->exec('PRAGMA foreign_keys = ON;');
+        }
+
+        if ($isNewDb) {
+            $this->initSchema();
+        }
+    }
+
+    private function initSchema(): void
+    {
+        $schema = file_get_contents(__DIR__ . '/../schema.sql');
+        $this->pdo->exec($schema);
     }
 
     public function getPdo(): PDO
