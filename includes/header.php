@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo sanitize($pageTitle ?? APP_NAME); ?></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="<?php echo sanitize(APP_URL); ?>/assets/styles.css">
+    <script src="<?php echo sanitize(APP_URL); ?>/assets/script.js" defer></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <nav class="bg-white shadow mb-6">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="<?php echo sanitize(APP_URL); ?>/index.php?op=dashboard"
+                class="text-xl font-bold text-blue-600"><?php echo sanitize(APP_NAME); ?></a>
+            <div class="flex gap-4 items-center">
+                <?php if (isLoggedIn()): ?>
+                    <a href="<?php echo sanitize(APP_URL); ?>/index.php?op=keywords"
+                        class="text-gray-700 hover:text-blue-500">Keywords</a>
+                    <a href="<?php echo sanitize(APP_URL); ?>/index.php?op=logout"
+                        class="text-red-500 hover:underline">Logout</a>
+                <?php else: ?>
+                    <a href="<?php echo sanitize(APP_URL); ?>/index.php?op=login"
+                        class="text-gray-700 hover:text-blue-500">Login</a>
+                    <a href="<?php echo sanitize(APP_URL); ?>/index.php?op=register"
+                        class="text-gray-700 hover:text-blue-500">Register</a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </nav>
+    <main>

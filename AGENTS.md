@@ -16,6 +16,11 @@ PHP project for keyword position tracker on simulated data.
 - Escape all dynamic user output using `htmlspecialchars($var, ENT_QUOTES, 'UTF-8')` to prevent XSS.
 - No secrets or credentials committed to the repository.
 - Keep code minimal, modular, and easy to read.
-- Group database connection in `db.php`
+- Use '' for PHP and "" for JS.
+- In SQL statements use `column_name/table_name` for columns name and table name. 
+- `init.php` must be included in all php files.
+- All general functions must be deined in `Functions.php`.
+- A class must have its own .php file in `libraries/`.
+- All constant variables need to be defined in `parameters.php` with uppercase. Example: `define('CONSTANT_NAME', $value)`.
 - SQLite database files (`database.sqlite`, `*.db`) and `.env` are gitignored
-
+- Apply DRY principle. If something repeats make it a function.
