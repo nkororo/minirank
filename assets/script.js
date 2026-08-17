@@ -47,12 +47,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function showError(element, message) {
         element.textContent = message;
-        element.classList.remove('hidden');
+        element.classList.remove('is-hidden');
     }
 
     function hideError(element) {
         element.textContent = '';
-        element.classList.add('hidden');
+        element.classList.add('is-hidden');
     }
 
     async function apiCall(url, options) {
@@ -101,27 +101,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function getTrendBadge(trend) {
         var classes = {
-            improved: 'bg-green-100 text-green-800',
-            declined: 'bg-red-100 text-red-800',
-            stable: 'bg-gray-100 text-gray-800'
+            improved: 'badge badge-improved',
+            declined: 'badge badge-declined',
+            stable: 'badge badge-stable'
         };
         var cls = classes[trend] || classes.stable;
-        return '<span class="px-2 py-1 rounded-full text-xs font-medium ' + cls + '">' + escapeHtml(trend) + '</span>';
+        return '<span class="' + cls + '">' + escapeHtml(trend) + '</span>';
     }
 
     function renderKeywordRow(kw, globalIndex) {
-        var html = '<tr class="border-b hover:bg-gray-50" data-id="' + kw.k_id + '">';
-        html += '<td class="py-3 px-4 text-gray-500">' + (globalIndex + 1) + '</td>';
-        html += '<td class="py-3 px-4">' + escapeHtml(kw.name) + '</td>';
-        html += '<td class="py-3 px-4">' + (kw.current_position !== null ? kw.current_position : '-') + '</td>';
-        html += '<td class="py-3 px-4">' + getTrendBadge(kw.trend) + '</td>';
-        html += '<td class="py-3 px-4">';
-        html += '<div class="relative inline-block">';
-        html += '<button class="dropdown-toggle text-gray-600 hover:text-gray-900 px-2 py-1 rounded border">Actions ▾</button>';
-        html += '<div class="dropdown-menu hidden absolute right-0 mt-1 w-36 bg-white border rounded-lg shadow-lg z-10">';
-        html += '<a href="index.php?op=positions&id=' + kw.k_id + '" class="block px-4 py-2 text-sm hover:bg-gray-100">Details</a>';
-        html += '<button class="edit-btn block w-full text-left px-4 py-2 text-sm hover:bg-gray-100" data-id="' + kw.k_id + '" data-name="' + escapeHtml(kw.name) + '">Edit</button>';
-        html += '<button class="delete-btn block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100" data-id="' + kw.k_id + '">Delete</button>';
+        var html = '<tr data-id="' + kw.k_id + '">';
+        html += '<td class="col-index table-row-number">' + (globalIndex + 1) + '</td>';
+        html += '<td class="col-auto">' + escapeHtml(kw.name) + '</td>';
+        html += '<td class="col-position">' + (kw.current_position !== null ? kw.current_position : '-') + '</td>';
+        html += '<td class="col-status">' + getTrendBadge(kw.trend) + '</td>';
+        html += '<td class="col-actions">';
+        html += '<div class="dropdown">';
+        html += '<button class="dropdown-toggle">Actions &#9662;</button>';
+        html += '<div class="dropdown-menu is-hidden">';
+        html += '<a href="index.php?op=positions&id=' + kw.k_id + '" class="dropdown-item">Details</a>';
+        html += '<button class="edit-btn dropdown-item" data-id="' + kw.k_id + '" data-name="' + escapeHtml(kw.name) + '">Edit</button>';
+        html += '<button class="delete-btn dropdown-item dropdown-item--danger" data-id="' + kw.k_id + '">Delete</button>';
         html += '</div></div>';
         html += '</td></tr>';
         return html;
@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function () {
             state.allKeywords = result.data;
             renderTable();
         } catch (err) {
-            dom.tableBody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-red-500">Failed to load keywords.</td></tr>';
+            dom.tableBody.innerHTML = '<tr><td colspan="5" class="table-empty-cell" style="color: var(--color-danger);">Failed to load keywords.</td></tr>';
         }
     }
 
@@ -162,8 +162,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             state.allKeywords.unshift(result.data);
             renderTable();
-            dom.addModal.classList.add('hidden');
-            dom.addModal.classList.remove('flex');
+            dom.addModal.classList.remove('is-active');
             dom.addForm.reset();
         } catch (err) {
             showError(dom.addError, err.message);
@@ -189,8 +188,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
             renderTable();
-            dom.editModal.classList.add('hidden');
-            dom.editModal.classList.remove('flex');
+            dom.editModal.classList.remove('is-active');
         } catch (err) {
             showError(dom.editError, err.message);
         }
@@ -214,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var row = dom.tableBody.querySelector('tr[data-id="' + id + '"]');
             if (row) {
                 var errorDiv = document.createElement('div');
-                errorDiv.className = 'text-red-500 text-sm mt-1';
+                errorDiv.className = 'row-error';
                 errorDiv.textContent = err.message;
                 row.querySelector('td').appendChild(errorDiv);
             }
@@ -246,14 +244,12 @@ document.addEventListener('DOMContentLoaded', function () {
     function showAddModal() {
         hideError(dom.addError);
         dom.addForm.reset();
-        dom.addModal.classList.remove('hidden');
-        dom.addModal.classList.add('flex');
+        dom.addModal.classList.add('is-active');
         dom.addName.focus();
     }
 
     function hideAddModal() {
-        dom.addModal.classList.add('hidden');
-        dom.addModal.classList.remove('flex');
+        dom.addModal.classList.remove('is-active');
         hideError(dom.addError);
     }
 
@@ -261,21 +257,19 @@ document.addEventListener('DOMContentLoaded', function () {
         hideError(dom.editError);
         dom.editId.value = id;
         dom.editName.value = name;
-        dom.editModal.classList.remove('hidden');
-        dom.editModal.classList.add('flex');
+        dom.editModal.classList.add('is-active');
         dom.editName.focus();
     }
 
     function hideEditModal() {
-        dom.editModal.classList.add('hidden');
-        dom.editModal.classList.remove('flex');
+        dom.editModal.classList.remove('is-active');
         hideError(dom.editError);
     }
 
     function closeAllDropdowns() {
         var menus = document.querySelectorAll('.dropdown-menu');
         for (var i = 0; i < menus.length; i++) {
-            menus[i].classList.add('hidden');
+            menus[i].classList.add('is-hidden');
         }
     }
 
@@ -318,7 +312,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (toggleBtn) {
             var menu = toggleBtn.nextElementSibling;
             closeAllDropdowns();
-            menu.classList.toggle('hidden');
+            menu.classList.toggle('is-hidden');
             return;
         }
 
@@ -337,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     document.addEventListener('click', function (e) {
-        if (!e.target.closest('.relative')) {
+        if (!e.target.closest('.dropdown')) {
             closeAllDropdowns();
         }
     });

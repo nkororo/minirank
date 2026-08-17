@@ -59,7 +59,7 @@ TablePaginator.prototype.render = function () {
     if (total === 0) {
         var colSpan = this.tableBody.getAttribute('data-col-span') || 5;
         this.tableBody.innerHTML =
-            '<tr><td colspan="' + colSpan + '" class="py-8 px-4 text-center text-gray-500">No data found.</td></tr>';
+            '<tr><td colspan="' + colSpan + '" class="table-empty-cell">No data found.</td></tr>';
         this.renderControls();
         return;
     }
@@ -98,7 +98,7 @@ TablePaginator.prototype.renderControls = function () {
     /* Previous button */
     var prevBtn = document.createElement('button');
     prevBtn.textContent = 'Previous';
-    prevBtn.className = 'px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed';
+    prevBtn.className = 'pagination-btn';
     prevBtn.disabled = this.currentPage <= 1;
     prevBtn.addEventListener('click', function () {
         if (self.currentPage > 1) {
@@ -109,14 +109,15 @@ TablePaginator.prototype.renderControls = function () {
 
     /* Page numbers container */
     var pageNumbersWrap = document.createElement('div');
-    pageNumbersWrap.className = 'flex gap-1';
+    pageNumbersWrap.className = 'pagination-buttons';
 
     for (var i = 1; i <= totalPages; i++) {
         (function (page) {
             var btn = document.createElement('button');
             btn.textContent = page;
-            btn.className = 'px-3 py-1 text-sm border rounded ' +
-                (page === self.currentPage ? 'bg-blue-500 text-white' : 'hover:bg-gray-50');
+            btn.className = page === self.currentPage
+                ? 'pagination-btn pagination-btn--active'
+                : 'pagination-btn';
             btn.addEventListener('click', function () {
                 self.currentPage = page;
                 self.render();
@@ -128,7 +129,7 @@ TablePaginator.prototype.renderControls = function () {
     /* Next button */
     var nextBtn = document.createElement('button');
     nextBtn.textContent = 'Next';
-    nextBtn.className = 'px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed';
+    nextBtn.className = 'pagination-btn';
     nextBtn.disabled = this.currentPage >= totalPages;
     nextBtn.addEventListener('click', function () {
         if (self.currentPage < totalPages) {
@@ -140,7 +141,7 @@ TablePaginator.prototype.renderControls = function () {
     /* Page info label */
     var info = document.createElement('span');
     info.textContent = 'Page ' + this.currentPage + ' of ' + totalPages;
-    info.className = 'text-sm text-gray-600 mx-2';
+    info.className = 'pagination-info';
 
     /* Assemble controls: Prev | info + page numbers | Next */
     container.innerHTML = '';
@@ -148,7 +149,7 @@ TablePaginator.prototype.renderControls = function () {
 
     /* Center block: info label + page numbers stacked */
     var centerBlock = document.createElement('div');
-    centerBlock.className = 'flex flex-col items-center gap-1';
+    centerBlock.className = 'pagination-center';
     centerBlock.appendChild(info);
     centerBlock.appendChild(pageNumbersWrap);
     container.appendChild(centerBlock);

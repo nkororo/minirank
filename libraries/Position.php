@@ -21,10 +21,12 @@ class Position
 
         // Fetch keyword and verify ownership
         $keyword = $db->fetchOne(
-            'SELECT * FROM `keywords` WHERE `k_id` = ? AND `user_id` = ?',
-            [$kid, $userId]
-        );
-
+            'SELECT k.*, p.project_id, p.name AS project_name, p.domain AS project_domain
+            FROM `keywords` k
+            INNER JOIN `projects` p ON k.`project_id` = p.`project_id`
+            WHERE k.`k_id` = ? AND p.`user_id` = ?',
+        [$kid, $userId]
+    );
         if (!$keyword) {
             header('Location: ' . APP_URL . '/index.php?op=dashboard');
             exit;
@@ -32,7 +34,10 @@ class Position
 
         // Count distinct users tracking this exact keyword phrase
         $adoptionRow = $db->fetchOne(
-            'SELECT COUNT(DISTINCT `user_id`) AS `count` FROM `keywords` WHERE LOWER(`name`) = LOWER(?)',
+            'SELECT COUNT(DISTINCT p.`user_id`) AS `count`
+            FROM `keywords` k
+            INNER JOIN `projects` p ON k.`project_id` = p.`project_id`
+            WHERE LOWER(k.`name`) = LOWER(?)',
             [$keyword['name']]
         );
         $adoptionCount = (int) ($adoptionRow['count'] ?? 0);
@@ -64,50 +69,50 @@ class Position
         $positionBadge = $currentPosition !== null ? $this->getPositionBadge($currentPosition) : '-';
 
         return '
-        <div class="max-w-6xl mx-auto p-6">
+        <div class="container">
             <div class="mb-6">
                 <a href="' . $appUrl . '/index.php?op=dashboard"
-                    class="text-blue-500 hover:underline">&larr; Back to Dashboard</a>
+                    class="back-link">&larr; Back to Dashboard</a>
             </div>
 
-            <div class="flex flex-wrap justify-between items-start gap-4 mb-6">
+            <div class="detail-header">
                 <div>
-                    <h1 class="text-2xl font-bold">' . $keywordName . '</h1>
-                    <p class="text-gray-500 mt-1">Current Rank: ' . $positionBadge . '</p>
+                    <h1 class="page-title">' . $keywordName . '</h1>
+                    <p class="detail-meta">Current Rank: ' . $positionBadge . '</p>
                 </div>
-                <div class="bg-white rounded-lg shadow px-6 py-4 text-center">
-                    <p class="text-sm text-gray-500">Users Tracking</p>
-                    <p class="text-2xl font-bold text-blue-600">' . $adoptionCount . '</p>
+                <div class="detail-stat">
+                    <p class="detail-stat-label">Users Tracking</p>
+                    <p class="detail-stat-value">' . $adoptionCount . '</p>
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg shadow p-6 mb-6">
-                <h2 class="text-lg font-semibold mb-4">Ranking History</h2>
-                <div id="chart-wrapper" class="relative" style="height: 350px;">
+            <div class="chart-container">
+                <h2 class="section-title">Ranking History</h2>
+                <div id="chart-wrapper" class="chart-wrapper">
                     <canvas id="ranking-chart"></canvas>
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg shadow overflow-hidden">
-                <div class="px-6 py-4 border-b">
-                    <h2 class="text-lg font-semibold">Position History</h2>
+            <div class="table-wrapper">
+                <div class="card-header">
+                    <h2 class="section-title" style="margin-bottom: 0;">Position History</h2>
                 </div>
-                <div id="history-empty" class="hidden px-6 py-12 text-center text-gray-500">
+                <div id="history-empty" class="is-hidden" style="padding: 3rem 1.5rem; text-align: center; color: var(--color-text-muted);">
                     No position records yet. Use Refresh Positions on the dashboard to generate data.
                 </div>
                 <div id="history-content">
-                    <table class="w-full">
+                    <table class="table">
                         <thead>
-                            <tr class="bg-gray-100">
-                                <th class="py-3 px-4 text-left w-16">#</th>
-                                <th class="py-3 px-4 text-left">Date</th>
-                                <th class="py-3 px-4 text-left">Position</th>
+                            <tr>
+                                <th class="col-index">#</th>
+                                <th class="col-date">Date</th>
+                                <th class="col-position">Position</th>
                             </tr>
                         </thead>
                         <tbody id="history-table-body"></tbody>
                     </table>
                 </div>
-                <div id="pagination-controls" class="flex justify-between items-center px-6 py-4 border-t"></div>
+                <div id="pagination-controls" class="pagination"></div>
             </div>
         </div>
 
@@ -126,14 +131,14 @@ class Position
                 if (!ctx || chartLabels.length === 0) {
                     var wrapper = document.getElementById("chart-wrapper");
                     if (wrapper) {
-                        wrapper.innerHTML = \'<div class="flex items-center justify-center h-full text-gray-400">No data available for chart</div>\';
+                        wrapper.innerHTML = \'<div class="chart-empty">No data available for chart</div>\';
                     }
                     return;
                 }
                 if (typeof Chart === "undefined") {
                     var wrapper = document.getElementById("chart-wrapper");
                     if (wrapper) {
-                        wrapper.innerHTML = \'<div class="flex items-center justify-center h-full text-gray-400">Chart library failed to load</div>\';
+                        wrapper.innerHTML = \'<div class="chart-empty">Chart library failed to load</div>\';
                     }
                     return;
                 }
@@ -144,8 +149,8 @@ class Position
                         datasets: [{
                             label: "Rank",
                             data: chartData,
-                            borderColor: "rgb(59, 130, 246)",
-                            backgroundColor: "rgba(59, 130, 246, 0.1)",
+                            borderColor: "#5A2A27",
+                            backgroundColor: "rgba(90, 42, 39, 0.1)",
                             borderWidth: 2,
                             pointRadius: 3,
                             pointHoverRadius: 5,
@@ -213,12 +218,12 @@ class Position
             }
 
             function getPositionBadgeHtml(pos) {
-                var color;
-                if (pos <= 3) { color = "bg-green-100 text-green-800"; }
-                else if (pos <= 10) { color = "bg-blue-100 text-blue-800"; }
-                else if (pos <= 20) { color = "bg-yellow-100 text-yellow-800"; }
-                else { color = "bg-gray-100 text-gray-800"; }
-                return \'<span class="px-2 py-1 rounded-full text-xs font-medium \' + color + \'">#\' + pos + \'</span>\';
+                var cls;
+                if (pos <= 3) { cls = "badge badge-position-top3"; }
+                else if (pos <= 10) { cls = "badge badge-position-top10"; }
+                else if (pos <= 20) { cls = "badge badge-position-top20"; }
+                else { cls = "badge badge-position-other"; }
+                return \'<span class="\' + cls + \'">#\' + pos + \'</span>\';
             }
 
             // --- Pagination via TablePaginator ---
@@ -228,24 +233,24 @@ class Position
             var historyContent = document.getElementById("history-content");
 
             function renderRow(row, globalIndex) {
-                var html = \'<tr class="border-b hover:bg-gray-50">\';
-                html += \'<td class="py-3 px-4 text-gray-500">\' + (globalIndex + 1) + \'</td>\';
-                html += \'<td class="py-3 px-4">\' + formatDate(row.date) + \'</td>\';
-                html += \'<td class="py-3 px-4">\' + getPositionBadgeHtml(row.position) + \'</td>\';
+                var html = \'<tr>\';
+                html += \'<td class="col-index table-row-number">\' + (globalIndex + 1) + \'</td>\';
+                html += \'<td class="col-date">\' + formatDate(row.date) + \'</td>\';
+                html += \'<td class="col-position">\' + getPositionBadgeHtml(row.position) + \'</td>\';
                 html += \'</tr>\';
                 return html;
             }
 
             function initPagination() {
                 if (allRows.length === 0) {
-                    historyEmpty.classList.remove("hidden");
-                    historyContent.classList.add("hidden");
-                    paginationControls.classList.add("hidden");
+                    historyEmpty.classList.remove("is-hidden");
+                    historyContent.classList.add("is-hidden");
+                    paginationControls.classList.add("is-hidden");
                     return;
                 }
-                historyEmpty.classList.add("hidden");
-                historyContent.classList.remove("hidden");
-                paginationControls.classList.remove("hidden");
+                historyEmpty.classList.add("is-hidden");
+                historyContent.classList.remove("is-hidden");
+                paginationControls.classList.remove("is-hidden");
 
                 if (typeof TablePaginator !== "undefined") {
                     var paginator = new TablePaginator({
@@ -278,16 +283,16 @@ class Position
     private function getPositionBadge(int $position): string
     {
         if ($position <= 3) {
-            $color = 'bg-green-100 text-green-800';
+            $class = 'badge badge-position-top3';
         } elseif ($position <= 10) {
-            $color = 'bg-blue-100 text-blue-800';
+            $class = 'badge badge-position-top10';
         } elseif ($position <= 20) {
-            $color = 'bg-yellow-100 text-yellow-800';
+            $class = 'badge badge-position-top20';
         } else {
-            $color = 'bg-gray-100 text-gray-800';
+            $class = 'badge badge-position-other';
         }
 
-        return '<span class="px-2 py-1 rounded-full text-xs font-medium ' . $color . '">#' . $position . '</span>';
+        return '<span class="' . $class . '">#' . $position . '</span>';
     }
 
     private function delete(): string

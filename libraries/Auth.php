@@ -25,28 +25,28 @@ class Auth
         unset($_SESSION['auth_error']);
 
         return '
-        <div class="min-h-screen flex items-center justify-center">
-            <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-                <h1 class="text-2xl font-bold mb-6 text-center">' . sanitize(APP_NAME) . '</h1>
-                <h2 class="text-xl mb-4 text-center">Login</h2>
-                ' . ($error ? '<p class="text-red-500 text-sm mb-4">' . sanitize($error) . '</p>' : '') . '
+        <div class="auth-container">
+            <div class="auth-card">
+                <h1 class="auth-title">' . sanitize(APP_NAME) . '</h1>
+                <h2 class="auth-subtitle">Login</h2>
+                ' . ($error ? '<div class="alert alert-error">' . sanitize($error) . '</div>' : '') . '
                 <form method="POST" action="' . sanitize(APP_URL . '/index.php?op=login') . '">
                     <input type="hidden" name="csrf_token" value="' . generateCsrfToken() . '">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium mb-1" for="email">Email</label>
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email</label>
                         <input type="email" id="email" name="email" required
-                            class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="form-input">
                     </div>
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium mb-1" for="password">Password</label>
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label class="form-label" for="password">Password</label>
                         <input type="password" id="password" name="password" required
-                            class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="form-input">
                     </div>
                     <button type="submit"
-                        class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600">Login</button>
+                        class="btn btn-primary btn-block">Login</button>
                 </form>
-                <p class="text-center mt-4">
-                    <a href="' . sanitize(APP_URL . '/index.php?op=register') . '" class="text-blue-500 hover:underline">Create an account</a>
+                <p class="auth-link">
+                    <a href="' . sanitize(APP_URL . '/index.php?op=register') . '" class="link">Create an account</a>
                 </p>
             </div>
         </div>';
@@ -58,33 +58,33 @@ class Auth
         unset($_SESSION['auth_error']);
 
         return '
-        <div class="min-h-screen flex items-center justify-center">
-            <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-                <h1 class="text-2xl font-bold mb-6 text-center">' . sanitize(APP_NAME) . '</h1>
-                <h2 class="text-xl mb-4 text-center">Register</h2>
-                ' . ($error ? '<p class="text-red-500 text-sm mb-4">' . sanitize($error) . '</p>' : '') . '
+        <div class="auth-container">
+            <div class="auth-card">
+                <h1 class="auth-title">' . sanitize(APP_NAME) . '</h1>
+                <h2 class="auth-subtitle">Register</h2>
+                ' . ($error ? '<div class="alert alert-error">' . sanitize($error) . '</div>' : '') . '
                 <form method="POST" action="' . sanitize(APP_URL . '/index.php?op=register') . '">
                     <input type="hidden" name="csrf_token" value="' . generateCsrfToken() . '">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium mb-1" for="email">Email</label>
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email</label>
                         <input type="email" id="email" name="email" required
-                            class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="form-input">
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium mb-1" for="password">Password</label>
+                    <div class="form-group">
+                        <label class="form-label" for="password">Password</label>
                         <input type="password" id="password" name="password" required
-                            class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="form-input">
                     </div>
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium mb-1" for="confirm_password">Confirm Password</label>
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label class="form-label" for="confirm_password">Confirm Password</label>
                         <input type="password" id="confirm_password" name="confirm_password" required
-                            class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="form-input">
                     </div>
                     <button type="submit"
-                        class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600">Register</button>
+                        class="btn btn-primary btn-block">Register</button>
                 </form>
-                <p class="text-center mt-4">
-                    <a href="' . sanitize(APP_URL . '/index.php?op=login') . '" class="text-blue-500 hover:underline">Already have an account? Login</a>
+                <p class="auth-link">
+                    <a href="' . sanitize(APP_URL . '/index.php?op=login') . '" class="link">Already have an account? Login</a>
                 </p>
             </div>
         </div>';

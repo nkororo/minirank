@@ -31,35 +31,37 @@ class Keyword
         $rows = '';
         foreach ($keywords as $keyword) {
             $rows .= '
-                <tr class="border-b">
-                    <td class="py-2 px-4">' . sanitize($keyword['name']) . '</td>
-                    <td class="py-2 px-4 text-sm text-gray-500">' . sanitize(formatDate($keyword['created_at'])) . '</td>
-                    <td class="py-2 px-4">
+                <tr>
+                    <td>' . sanitize($keyword['name']) . '</td>
+                    <td class="text-sm text-muted">' . sanitize(formatDate($keyword['created_at'])) . '</td>
+                    <td>
                         <a href="' . sanitize(APP_URL . '/index.php?op=edit_keyword&id=' . $keyword['k_id']) . '"
-                            class="text-blue-500 hover:underline mr-2">Edit</a>
+                            class="link mr-2">Edit</a>
                         <a href="' . sanitize(APP_URL . '/index.php?op=delete_keyword&id=' . $keyword['k_id']) . '"
-                            class="text-red-500 hover:underline">Delete</a>
+                            class="link link--danger">Delete</a>
                     </td>
                 </tr>';
         }
 
         return '
-        <div class="max-w-4xl mx-auto p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-bold">Keywords</h1>
+        <div class="container-md">
+            <div class="page-header">
+                <h1 class="page-title">Keywords</h1>
                 <a href="' . sanitize(APP_URL . '/index.php?op=add_keyword') . '"
-                    class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">+ Add Keyword</a>
+                    class="btn btn-success">+ Add Keyword</a>
             </div>
-            <table class="w-full bg-white rounded-lg shadow">
-                <thead>
-                    <tr class="bg-gray-100">
-                        <th class="py-2 px-4 text-left">Keyword</th>
-                        <th class="py-2 px-4 text-left">Created</th>
-                        <th class="py-2 px-4 text-left">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>' . $rows . '</tbody>
-            </table>
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Keyword</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>' . $rows . '</tbody>
+                </table>
+            </div>
         </div>';
     }
 
@@ -85,19 +87,19 @@ class Keyword
         }
 
         return '
-        <div class="max-w-lg mx-auto p-6">
-            <h1 class="text-2xl font-bold mb-4">Add Keyword</h1>
+        <div class="container-sm">
+            <h1 class="page-title mb-4">Add Keyword</h1>
             <form method="POST" action="' . sanitize(APP_URL . '/index.php?op=add_keyword') . '">
                 <input type="hidden" name="csrf_token" value="' . generateCsrfToken() . '">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1" for="name">Keyword</label>
+                <div class="form-group">
+                    <label class="form-label" for="name">Keyword</label>
                     <input type="text" id="name" name="name" required
-                        class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="form-input">
                 </div>
                 <button type="submit"
-                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save</button>
+                    class="btn btn-primary">Save</button>
                 <a href="' . sanitize(APP_URL . '/index.php?op=keywords') . '"
-                    class="ml-2 text-gray-500 hover:underline">Cancel</a>
+                    class="btn btn-ghost ml-2">Cancel</a>
             </form>
         </div>';
     }
@@ -133,19 +135,19 @@ class Keyword
         }
 
         return '
-        <div class="max-w-lg mx-auto p-6">
-            <h1 class="text-2xl font-bold mb-4">Edit Keyword</h1>
+        <div class="container-sm">
+            <h1 class="page-title mb-4">Edit Keyword</h1>
             <form method="POST" action="' . sanitize(APP_URL . '/index.php?op=edit_keyword&id=' . $kid) . '">
                 <input type="hidden" name="csrf_token" value="' . generateCsrfToken() . '">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1" for="name">Keyword</label>
+                <div class="form-group">
+                    <label class="form-label" for="name">Keyword</label>
                     <input type="text" id="name" name="name" required value="' . sanitize($keyword['name']) . '"
-                        class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="form-input">
                 </div>
                 <button type="submit"
-                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Update</button>
+                    class="btn btn-primary">Update</button>
                 <a href="' . sanitize(APP_URL . '/index.php?op=keywords') . '"
-                    class="ml-2 text-gray-500 hover:underline">Cancel</a>
+                    class="btn btn-ghost ml-2">Cancel</a>
             </form>
         </div>';
     }

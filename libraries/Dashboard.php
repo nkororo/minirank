@@ -43,81 +43,81 @@ class Dashboard
         }
 
         return '
-        <div class="max-w-6xl mx-auto p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-bold">Projects Dashboard</h1>
+        <div class="container">
+            <div class="page-header">
+                <h1 class="page-title">Projects Dashboard</h1>
                 <button id="btn-new-project"
-                    class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">+ New Project</button>
+                    class="btn btn-success">+ New Project</button>
             </div>
 
             <!-- Stats Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                <div class="bg-white rounded-lg shadow p-4">
-                    <div class="text-sm text-gray-500">Total Projects</div>
-                    <div class="text-2xl font-bold">' . $totalProjects . '</div>
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Projects</div>
+                    <div class="stat-value">' . $totalProjects . '</div>
                 </div>
-                <div class="bg-white rounded-lg shadow p-4">
-                    <div class="text-sm text-gray-500">Active</div>
-                    <div class="text-2xl font-bold text-green-600">' . $activeProjects . '</div>
+                <div class="stat-card">
+                    <div class="stat-label">Active</div>
+                    <div class="stat-value stat-value--success">' . $activeProjects . '</div>
                 </div>
-                <div class="bg-white rounded-lg shadow p-4">
-                    <div class="text-sm text-gray-500">Archived</div>
-                    <div class="text-2xl font-bold text-gray-400">' . $archivedProjects . '</div>
+                <div class="stat-card">
+                    <div class="stat-label">Archived</div>
+                    <div class="stat-value stat-value--muted">' . $archivedProjects . '</div>
                 </div>
             </div>
 
             <!-- Filter Tabs -->
-            <div class="flex gap-2 mb-4">
-                <button class="filter-tab px-4 py-2 rounded text-sm font-medium bg-blue-500 text-white" data-filter="all">All</button>
-                <button class="filter-tab px-4 py-2 rounded text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="active">Active</button>
-                <button class="filter-tab px-4 py-2 rounded text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="archived">Archived</button>
+            <div class="filter-tabs">
+                <button class="filter-tab filter-tab--active" data-filter="all">All</button>
+                <button class="filter-tab filter-tab--inactive" data-filter="active">Active</button>
+                <button class="filter-tab filter-tab--inactive" data-filter="archived">Archived</button>
             </div>
 
             <!-- Projects Table -->
-            <div class="bg-white rounded-lg shadow overflow-hidden">
-                <table class="w-full">
+            <div class="table-wrapper">
+                <table class="table">
                     <thead>
-                        <tr class="bg-gray-100">
-                            <th class="py-3 px-4 text-left w-16">#</th>
-                            <th class="py-3 px-4 text-left">Project Name & Domain</th>
-                            <th class="py-3 px-4 text-left">Keywords</th>
-                            <th class="py-3 px-4 text-left">Status</th>
-                            <th class="py-3 px-4 text-left">Actions</th>
+                        <tr>
+                            <th class="col-index">#</th>
+                            <th class="col-auto">Project Name & Domain</th>
+                            <th class="col-position">Keywords</th>
+                            <th class="col-status">Status</th>
+                            <th class="col-actions">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="projects-table-body" data-col-span="5">
-                        <tr><td colspan="5" class="py-8 px-4 text-center text-gray-500">Loading...</td></tr>
+                        <tr><td colspan="5" class="table-empty-cell">Loading...</td></tr>
                     </tbody>
                 </table>
-                <div id="dashboard-pagination" class="flex justify-between items-center px-6 py-4 border-t"></div>
+                <div id="dashboard-pagination" class="pagination"></div>
             </div>
         </div>
 
         <!-- New Project Modal -->
-        <div id="project-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-            <div class="bg-white rounded-lg shadow-lg w-full max-w-md mx-4">
-                <div class="p-6">
-                    <h2 class="text-xl font-bold mb-4">New Project</h2>
-                    <div id="project-error" class="hidden mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded"></div>
+        <div id="project-modal" class="modal-overlay">
+            <div class="modal">
+                <div class="modal-body">
+                    <h2 class="modal-title">New Project</h2>
+                    <div id="project-error" class="is-hidden alert alert-error"></div>
                     <form id="project-form">
                         <input type="hidden" name="csrf_token" value="' . $csrfToken . '">
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium mb-1" for="project-name">Project Name</label>
+                        <div class="form-group">
+                            <label class="form-label" for="project-name">Project Name</label>
                             <input type="text" id="project-name" name="name" required
-                                class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                class="form-input"
                                 placeholder="My Website">
                         </div>
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium mb-1" for="project-domain">Domain</label>
+                        <div class="form-group">
+                            <label class="form-label" for="project-domain">Domain</label>
                             <input type="text" id="project-domain" name="domain"
-                                class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                class="form-input"
                                 placeholder="example.com">
                         </div>
-                        <div class="flex justify-end gap-2">
+                        <div class="modal-actions">
                             <button type="button" id="project-cancel"
-                                class="px-4 py-2 text-gray-500 hover:underline">Cancel</button>
+                                class="btn btn-ghost">Cancel</button>
                             <button type="submit"
-                                class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Create</button>
+                                class="btn btn-primary">Create</button>
                         </div>
                     </form>
                 </div>

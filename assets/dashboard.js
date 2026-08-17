@@ -31,12 +31,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function showError(element, message) {
         element.textContent = message;
-        element.classList.remove('hidden');
+        element.classList.remove('is-hidden');
     }
 
     function hideError(element) {
         element.textContent = '';
-        element.classList.add('hidden');
+        element.classList.add('is-hidden');
     }
 
     async function apiCall(url, options) {
@@ -50,9 +50,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function getStatusBadge(status) {
         if (status === 'active') {
-            return '<span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>';
+            return '<span class="badge badge-success">Active</span>';
         }
-        return '<span class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Archived</span>';
+        return '<span class="badge badge-muted">Archived</span>';
     }
 
     function getFilteredProjects() {
@@ -66,29 +66,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function renderProjectRow(project, globalIndex) {
         var domainHtml = project.domain
-            ? '<span class="text-gray-400 text-sm ml-1">(' + escapeHtml(project.domain) + ')</span>'
+            ? '<span class="project-domain ml-1">(' + escapeHtml(project.domain) + ')</span>'
             : '';
 
-        var nameLink = '<a href="index.php?op=project&id=' + project.project_id + '" class="text-blue-600 hover:underline font-medium">'
+        var nameLink = '<a href="index.php?op=project&id=' + project.project_id + '" class="link font-medium">'
             + escapeHtml(project.name) + '</a>' + domainHtml;
 
         var toggleLabel = project.status === 'active' ? 'Archive' : 'Restore';
         var toggleClass = project.status === 'active'
-            ? 'archive-btn text-orange-600 hover:text-orange-800'
-            : 'restore-btn text-green-600 hover:text-green-800';
+            ? 'archive-btn link--muted dropdown-item'
+            : 'restore-btn link dropdown-item';
 
-        var html = '<tr class="border-b hover:bg-gray-50" data-id="' + project.project_id + '">';
-        html += '<td class="py-3 px-4 text-gray-500">' + (globalIndex + 1) + '</td>';
-        html += '<td class="py-3 px-4">' + nameLink + '</td>';
-        html += '<td class="py-3 px-4">' + project.keywords_count + '</td>';
-        html += '<td class="py-3 px-4">' + getStatusBadge(project.status) + '</td>';
-        html += '<td class="py-3 px-4">';
-        html += '<div class="relative inline-block">';
-        html += '<button class="dropdown-toggle text-gray-600 hover:text-gray-900 px-2 py-1 rounded border">Actions ▾</button>';
-        html += '<div class="dropdown-menu hidden absolute right-0 mt-1 w-36 bg-white border rounded-lg shadow-lg z-10">';
-        html += '<a href="index.php?op=project&id=' + project.project_id + '" class="block px-4 py-2 text-sm hover:bg-gray-100">View</a>';
-        html += '<button class="' + toggleClass + ' block w-full text-left px-4 py-2 text-sm hover:bg-gray-100" data-id="' + project.project_id + '">' + toggleLabel + '</button>';
-        html += '<button class="delete-project-btn block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100" data-id="' + project.project_id + '">Delete</button>';
+        var html = '<tr data-id="' + project.project_id + '">';
+        html += '<td class="col-index table-row-number">' + (globalIndex + 1) + '</td>';
+        html += '<td class="col-auto">' + nameLink + '</td>';
+        html += '<td class="col-position">' + project.keywords_count + '</td>';
+        html += '<td class="col-status">' + getStatusBadge(project.status) + '</td>';
+        html += '<td class="col-actions">';
+        html += '<div class="dropdown">';
+        html += '<button class="dropdown-toggle">Actions &#9662;</button>';
+        html += '<div class="dropdown-menu is-hidden">';
+        html += '<a href="index.php?op=project&id=' + project.project_id + '" class="dropdown-item">View</a>';
+        html += '<button class="' + toggleClass + '" data-id="' + project.project_id + '">' + toggleLabel + '</button>';
+        html += '<button class="delete-project-btn dropdown-item dropdown-item--danger" data-id="' + project.project_id + '">Delete</button>';
         html += '</div></div>';
         html += '</td></tr>';
         return html;
@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function () {
             state.allProjects = window.__PROJECTS_DATA__ || [];
             renderTable();
         } catch (err) {
-            dom.tableBody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-red-500">Failed to load projects.</td></tr>';
+            dom.tableBody.innerHTML = '<tr><td colspan="5" class="table-empty-cell" style="color: var(--color-danger);">Failed to load projects.</td></tr>';
         }
     }
 
@@ -131,8 +131,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             state.allProjects.unshift(result.data);
             renderTable();
-            dom.projectModal.classList.add('hidden');
-            dom.projectModal.classList.remove('flex');
+            dom.projectModal.classList.remove('is-active');
             dom.projectForm.reset();
         } catch (err) {
             showError(dom.projectError, err.message);
@@ -183,21 +182,19 @@ document.addEventListener('DOMContentLoaded', function () {
     function showProjectModal() {
         hideError(dom.projectError);
         dom.projectForm.reset();
-        dom.projectModal.classList.remove('hidden');
-        dom.projectModal.classList.add('flex');
+        dom.projectModal.classList.add('is-active');
         dom.projectName.focus();
     }
 
     function hideProjectModal() {
-        dom.projectModal.classList.add('hidden');
-        dom.projectModal.classList.remove('flex');
+        dom.projectModal.classList.remove('is-active');
         hideError(dom.projectError);
     }
 
     function closeAllDropdowns() {
         var menus = document.querySelectorAll('.dropdown-menu');
         for (var i = 0; i < menus.length; i++) {
-            menus[i].classList.add('hidden');
+            menus[i].classList.add('is-hidden');
         }
     }
 
@@ -210,11 +207,11 @@ document.addEventListener('DOMContentLoaded', function () {
         tab.addEventListener('click', function () {
             state.currentFilter = this.dataset.filter;
             dom.filterTabs.forEach(function (t) {
-                t.classList.remove('bg-blue-500', 'text-white');
-                t.classList.add('bg-gray-200', 'text-gray-700');
+                t.classList.remove('filter-tab--active');
+                t.classList.add('filter-tab--inactive');
             });
-            this.classList.remove('bg-gray-200', 'text-gray-700');
-            this.classList.add('bg-blue-500', 'text-white');
+            this.classList.remove('filter-tab--inactive');
+            this.classList.add('filter-tab--active');
             renderTable();
         });
     });
@@ -224,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (toggleBtn) {
             var menu = toggleBtn.nextElementSibling;
             closeAllDropdowns();
-            menu.classList.toggle('hidden');
+            menu.classList.toggle('is-hidden');
             return;
         }
 
@@ -249,7 +246,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     document.addEventListener('click', function (e) {
-        if (!e.target.closest('.relative')) {
+        if (!e.target.closest('.dropdown')) {
             closeAllDropdowns();
         }
     });

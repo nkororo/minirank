@@ -8,7 +8,7 @@ PHP project for keyword position tracker on simulated data.
 
 - Backend: Plain PHP 8.2.12
 - Database: SQLite with PDO
-- Frontend: HTML5, Tailwind CSS, Vanilla JavaScript
+- Frontend: HTML5, CSS, Vanilla JavaScript
 
 ## Rules
 
