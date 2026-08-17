@@ -40,16 +40,18 @@ class Dashboard
                 <table class="w-full">
                     <thead>
                         <tr class="bg-gray-100">
+                            <th class="py-3 px-4 text-left w-16">#</th>
                             <th class="py-3 px-4 text-left">Keyword</th>
                             <th class="py-3 px-4 text-left">Position</th>
                             <th class="py-3 px-4 text-left">Trend</th>
                             <th class="py-3 px-4 text-left">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="keywords-table-body">
-                        <tr><td colspan="4" class="py-8 px-4 text-center text-gray-500">Loading...</td></tr>
+                    <tbody id="keywords-table-body" data-col-span="5">
+                        <tr><td colspan="5" class="py-8 px-4 text-center text-gray-500">Loading...</td></tr>
                     </tbody>
                 </table>
+                <div id="dashboard-pagination" class="flex justify-between items-center px-6 py-4 border-t"></div>
             </div>
 
             <div class="mt-4">

@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
     <link rel="stylesheet" href="<?php echo sanitize(APP_URL); ?>/assets/styles.css">
+    <script src="<?php echo sanitize(APP_URL); ?>/assets/TablePaginator.js" defer></script>
     <script src="<?php echo sanitize(APP_URL); ?>/assets/script.js" defer></script>
 </head>
 <body class="bg-gray-100 min-h-screen">

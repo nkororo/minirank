@@ -110,13 +110,7 @@ class Position
                         <tbody id="history-table-body">' . $tableRows . '</tbody>
                     </table>
                 </div>
-                <div id="pagination-controls" class="flex justify-between items-center px-6 py-4 border-t">
-                    <button id="prev-page"
-                        class="px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
-                    <div id="page-numbers" class="flex gap-1"></div>
-                    <button id="next-page"
-                        class="px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
-                </div>
+                <div id="pagination-controls" class="flex justify-between items-center px-6 py-4 border-t"></div>
             </div>
         </div>
 
@@ -124,8 +118,6 @@ class Position
         (function () {
             "use strict";
 
-            var PAGE_SIZE = 10;
-            var currentPage = 1;
             var allRows = ' . json_encode($positionsDesc) . ';
 
             // --- Chart ---
@@ -196,15 +188,7 @@ class Position
                 });
             }
 
-            // --- Pagination ---
-            var tbody = document.getElementById("history-table-body");
-            var prevBtn = document.getElementById("prev-page");
-            var nextBtn = document.getElementById("next-page");
-            var pageNumbers = document.getElementById("page-numbers");
-            var historyEmpty = document.getElementById("history-empty");
-            var historyContent = document.getElementById("history-content");
-            var paginationControls = document.getElementById("pagination-controls");
-
+            // --- Helpers ---
             function escapeHtml(str) {
                 var div = document.createElement("div");
                 div.appendChild(document.createTextNode(str));
@@ -233,81 +217,44 @@ class Position
                 return \'<span class="px-2 py-1 rounded-full text-xs font-medium \' + color + \'">#\' + pos + \'</span>\';
             }
 
-            function getTotalPages() {
-                return Math.max(1, Math.ceil(allRows.length / PAGE_SIZE));
+            // --- Pagination via TablePaginator ---
+            var tbody = document.getElementById("history-table-body");
+            var paginationControls = document.getElementById("pagination-controls");
+            var historyEmpty = document.getElementById("history-empty");
+            var historyContent = document.getElementById("history-content");
+
+            function renderRow(row, globalIndex) {
+                var html = \'<tr class="border-b hover:bg-gray-50">\';
+                html += \'<td class="py-3 px-4 text-gray-500">\' + (globalIndex + 1) + \'</td>\';
+                html += \'<td class="py-3 px-4">\' + formatDate(row.date) + \'</td>\';
+                html += \'<td class="py-3 px-4">\' + getPositionBadgeHtml(row.position) + \'</td>\';
+                html += \'</tr>\';
+                return html;
             }
 
-            function renderTable() {
-                var total = allRows.length;
+            var paginator = new TablePaginator({
+                tableBody: tbody,
+                paginationContainer: paginationControls,
+                pageSize: 10,
+                renderRow: renderRow
+            });
 
-                if (total === 0) {
+            function initPagination() {
+                if (allRows.length === 0) {
                     historyEmpty.classList.remove("hidden");
                     historyContent.classList.add("hidden");
                     paginationControls.classList.add("hidden");
                     return;
                 }
-
                 historyEmpty.classList.add("hidden");
                 historyContent.classList.remove("hidden");
                 paginationControls.classList.remove("hidden");
-
-                var start = (currentPage - 1) * PAGE_SIZE;
-                var end = Math.min(start + PAGE_SIZE, total);
-                var slice = allRows.slice(start, end);
-
-                var html = "";
-                for (var i = 0; i < slice.length; i++) {
-                    var row = slice[i];
-                    var rowNum = start + i + 1;
-                    html += \'<tr class="border-b hover:bg-gray-50">\';
-                    html += \'<td class="py-3 px-4 text-gray-500">\' + rowNum + \'</td>\';
-                    html += \'<td class="py-3 px-4">\'+ formatDate(row.date) +\'</td>\';
-                    html += \'<td class="py-3 px-4">\' + getPositionBadgeHtml(row.position) + \'</td>\';
-                    html += \'</tr>\';
-                }
-                tbody.innerHTML = html;
-
-                renderPagination();
+                paginator.setData(allRows);
             }
-
-            function renderPagination() {
-                var total = getTotalPages();
-                pageNumbers.innerHTML = "";
-
-                for (var i = 1; i <= total; i++) {
-                    var btn = document.createElement("button");
-                    btn.textContent = i;
-                    btn.className = "px-3 py-1 text-sm border rounded " +
-                        (i === currentPage ? "bg-blue-500 text-white" : "hover:bg-gray-50");
-                    btn.dataset.page = i;
-                    btn.addEventListener("click", function () {
-                        currentPage = parseInt(this.dataset.page, 10);
-                        renderTable();
-                    });
-                    pageNumbers.appendChild(btn);
-                }
-
-                prevBtn.disabled = currentPage <= 1;
-                nextBtn.disabled = currentPage >= total;
-            }
-
-            prevBtn.addEventListener("click", function () {
-                if (currentPage > 1) {
-                    currentPage--;
-                    renderTable();
-                }
-            });
-
-            nextBtn.addEventListener("click", function () {
-                if (currentPage < getTotalPages()) {
-                    currentPage++;
-                    renderTable();
-                }
-            });
 
             // --- Init ---
             initChart();
-            renderTable();
+            initPagination();
         })();
         </script>';
     }

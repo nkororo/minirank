@@ -5,10 +5,13 @@ document.addEventListener('DOMContentLoaded', function () {
         allKeywords: [],
         currentSort: { field: 'name', direction: 'asc' },
         currentFilter: { search: '', trend: '' },
+        currentPage: 1,
+        pageSize: 10
     };
 
     var dom = {
         tableBody: document.getElementById('keywords-table-body'),
+        paginationContainer: document.getElementById('dashboard-pagination'),
         searchInput: document.getElementById('search-input'),
         filterSelect: document.getElementById('filter-select'),
         sortSelect: document.getElementById('sort-select'),
@@ -103,33 +106,36 @@ document.addEventListener('DOMContentLoaded', function () {
         return '<span class="px-2 py-1 rounded-full text-xs font-medium ' + cls + '">' + escapeHtml(trend) + '</span>';
     }
 
+    /* Row renderer callback for TablePaginator */
+    function renderKeywordRow(kw, globalIndex) {
+        var html = '<tr class="border-b hover:bg-gray-50" data-id="' + kw.k_id + '">';
+        html += '<td class="py-3 px-4 text-gray-500">' + (globalIndex + 1) + '</td>';
+        html += '<td class="py-3 px-4">' + escapeHtml(kw.name) + '</td>';
+        html += '<td class="py-3 px-4">' + (kw.current_position !== null ? kw.current_position : '-') + '</td>';
+        html += '<td class="py-3 px-4">' + getTrendBadge(kw.trend) + '</td>';
+        html += '<td class="py-3 px-4">';
+        html += '<div class="relative inline-block">';
+        html += '<button class="dropdown-toggle text-gray-600 hover:text-gray-900 px-2 py-1 rounded border">Actions ▾</button>';
+        html += '<div class="dropdown-menu hidden absolute right-0 mt-1 w-36 bg-white border rounded-lg shadow-lg z-10">';
+        html += '<a href="index.php?op=positions&id=' + kw.k_id + '" class="block px-4 py-2 text-sm hover:bg-gray-100">Details</a>';
+        html += '<button class="edit-btn block w-full text-left px-4 py-2 text-sm hover:bg-gray-100" data-id="' + kw.k_id + '" data-name="' + escapeHtml(kw.name) + '">Edit</button>';
+        html += '<button class="delete-btn block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100" data-id="' + kw.k_id + '">Delete</button>';
+        html += '</div></div>';
+        html += '</td></tr>';
+        return html;
+    }
+
+    /* Initialise the paginator */
+    var paginator = new TablePaginator({
+        tableBody: dom.tableBody,
+        paginationContainer: dom.paginationContainer,
+        pageSize: state.pageSize,
+        renderRow: renderKeywordRow
+    });
+
     function renderTable() {
         var filtered = getFilteredKeywords();
-
-        if (filtered.length === 0) {
-            dom.tableBody.innerHTML = '<tr><td colspan="4" class="py-8 px-4 text-center text-gray-500">No keywords found.</td></tr>';
-            return;
-        }
-
-        var html = '';
-        for (var i = 0; i < filtered.length; i++) {
-            var kw = filtered[i];
-            html += '<tr class="border-b hover:bg-gray-50" data-id="' + kw.k_id + '">';
-            html += '<td class="py-3 px-4">' + escapeHtml(kw.name) + '</td>';
-            html += '<td class="py-3 px-4">' + (kw.current_position !== null ? kw.current_position : '-') + '</td>';
-            html += '<td class="py-3 px-4">' + getTrendBadge(kw.trend) + '</td>';
-            html += '<td class="py-3 px-4">';
-            html += '<div class="relative inline-block">';
-            html += '<button class="dropdown-toggle text-gray-600 hover:text-gray-900 px-2 py-1 rounded border">Actions ▾</button>';
-            html += '<div class="dropdown-menu hidden absolute right-0 mt-1 w-36 bg-white border rounded-lg shadow-lg z-10">';
-            html += '<a href="index.php?op=positions&id=' + kw.k_id + '" class="block px-4 py-2 text-sm hover:bg-gray-100">Details</a>';
-            html += '<button class="edit-btn block w-full text-left px-4 py-2 text-sm hover:bg-gray-100" data-id="' + kw.k_id + '" data-name="' + escapeHtml(kw.name) + '">Edit</button>';
-            html += '<button class="delete-btn block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100" data-id="' + kw.k_id + '">Delete</button>';
-            html += '</div></div>';
-            html += '</td></tr>';
-        }
-
-        dom.tableBody.innerHTML = html;
+        paginator.setData(filtered);
     }
 
     async function loadKeywords() {
@@ -138,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function () {
             state.allKeywords = result.data;
             renderTable();
         } catch (err) {
-            dom.tableBody.innerHTML = '<tr><td colspan="4" class="py-8 px-4 text-center text-red-500">Failed to load keywords.</td></tr>';
+            dom.tableBody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-red-500">Failed to load keywords.</td></tr>';
         }
     }
 
