@@ -5,6 +5,19 @@ function sanitize(string $value): string
     return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 }
 
+/**
+ * Format a date string from YYYY-MM-DD to "DD Month YYYY".
+ * Handles both DATE and DATETIME inputs.
+ */
+function formatDate(string $date): string
+{
+    $timestamp = strtotime($date);
+    if ($timestamp === false) {
+        return $date;
+    }
+    return date('d F Y', $timestamp);
+}
+
 function redirect(string $url): void
 {
     header('Location: ' . $url);

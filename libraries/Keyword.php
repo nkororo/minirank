@@ -33,7 +33,7 @@ class Keyword
             $rows .= '
                 <tr class="border-b">
                     <td class="py-2 px-4">' . sanitize($keyword['name']) . '</td>
-                    <td class="py-2 px-4 text-sm text-gray-500">' . sanitize($keyword['created_at']) . '</td>
+                    <td class="py-2 px-4 text-sm text-gray-500">' . sanitize(formatDate($keyword['created_at'])) . '</td>
                     <td class="py-2 px-4">
                         <a href="' . sanitize(APP_URL . '/index.php?op=edit_keyword&id=' . $keyword['k_id']) . '"
                             class="text-blue-500 hover:underline mr-2">Edit</a>

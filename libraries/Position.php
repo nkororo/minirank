@@ -53,7 +53,7 @@ class Position
         $keywordName = sanitize($keyword['name']);
 
         // Prepare chart data as JSON
-        $chartLabels = array_map(fn($p) => $p['date'], $positionsAsc);
+        $chartLabels = array_map(fn($p) => formatDate($p['date']), $positionsAsc);
         $chartData = array_map(fn($p) => $p['position'], $positionsAsc);
         $chartLabelsJson = json_encode($chartLabels);
         $chartDataJson = json_encode($chartData);
@@ -210,6 +210,19 @@ class Position
                 return div.innerHTML;
             }
 
+            function formatDate(str) {
+                var months = [
+                    "January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"
+                ];
+                var parts = str.split("-");
+                if (parts.length < 3) return str;
+                var day = parseInt(parts[2], 10);
+                var month = months[parseInt(parts[1], 10) - 1];
+                var year = parts[0];
+                return day + " " + month + " " + year;
+            }
+
             function getPositionBadgeHtml(pos) {
                 var color;
                 if (pos <= 3) { color = "bg-green-100 text-green-800"; }
@@ -247,7 +260,7 @@ class Position
                     var rowNum = start + i + 1;
                     html += \'<tr class="border-b hover:bg-gray-50">\';
                     html += \'<td class="py-3 px-4 text-gray-500">\' + rowNum + \'</td>\';
-                    html += \'<td class="py-3 px-4">\'+ escapeHtml(row.date) +\'</td>\';
+                    html += \'<td class="py-3 px-4">\'+ formatDate(row.date) +\'</td>\';
                     html += \'<td class="py-3 px-4">\' + getPositionBadgeHtml(row.position) + \'</td>\';
                     html += \'</tr>\';
                 }
@@ -309,7 +322,7 @@ class Position
             $rows .= '
                 <tr class="border-b hover:bg-gray-50">
                     <td class="py-3 px-4 text-gray-500">' . ($i + 1) . '</td>
-                    <td class="py-3 px-4">' . sanitize($pos['date']) . '</td>
+                    <td class="py-3 px-4">' . sanitize(formatDate($pos['date'])) . '</td>
                     <td class="py-3 px-4">' . $this->getPositionBadge((int) $pos['position']) . '</td>
                 </tr>';
         }
