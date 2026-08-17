@@ -15,7 +15,10 @@ document.addEventListener('DOMContentLoaded', function () {
         projectError: document.getElementById('project-error'),
         projectName: document.getElementById('project-name'),
         projectCancel: document.getElementById('project-cancel'),
-        filterTabs: document.querySelectorAll('.filter-tab')
+        filterTabs: document.querySelectorAll('.filter-tab'),
+        statTotal: document.getElementById('stat-total'),
+        statActive: document.getElementById('stat-active'),
+        statArchived: document.getElementById('stat-archived')
     };
 
     function escapeHtml(str) {
@@ -106,6 +109,23 @@ document.addEventListener('DOMContentLoaded', function () {
         paginator.setData(filtered);
     }
 
+    /* Recalculate and update the stats cards from the local projects array */
+    function updateProjectsStats() {
+        var total = state.allProjects.length;
+        var active = 0;
+        var archived = 0;
+        for (var i = 0; i < total; i++) {
+            if (state.allProjects[i].status === 'active') {
+                active++;
+            } else {
+                archived++;
+            }
+        }
+        dom.statTotal.textContent = total;
+        dom.statActive.textContent = active;
+        dom.statArchived.textContent = archived;
+    }
+
     async function loadProjects() {
         try {
             /* Projects are embedded in the page via PHP, parse from DOM */
@@ -131,6 +151,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             state.allProjects.unshift(result.data);
             renderTable();
+            updateProjectsStats();
             dom.projectModal.classList.remove('is-active');
             dom.projectForm.reset();
         } catch (err) {
@@ -155,6 +176,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
             renderTable();
+            updateProjectsStats();
         } catch (err) {
             alert(err.message);
         }
@@ -174,6 +196,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return p.project_id !== projectId;
             });
             renderTable();
+            updateProjectsStats();
         } catch (err) {
             alert(err.message);
         }

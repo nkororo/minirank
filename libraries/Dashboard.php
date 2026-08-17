@@ -54,15 +54,15 @@ class Dashboard
             <div class="stat-grid">
                 <div class="stat-card">
                     <div class="stat-label">Total Projects</div>
-                    <div class="stat-value">' . $totalProjects . '</div>
+                    <div id="stat-total" class="stat-value">' . $totalProjects . '</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Active</div>
-                    <div class="stat-value stat-value--success">' . $activeProjects . '</div>
+                    <div id="stat-active" class="stat-value stat-value--success">' . $activeProjects . '</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Archived</div>
-                    <div class="stat-value stat-value--muted">' . $archivedProjects . '</div>
+                    <div id="stat-archived" class="stat-value stat-value--muted">' . $archivedProjects . '</div>
                 </div>
             </div>
 
