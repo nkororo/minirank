@@ -57,6 +57,10 @@ class Position
         $csrfToken = generateCsrfToken();
         $appUrl = APP_URL;
         $keywordName = sanitize($keyword['name']);
+        $projectId = (int) $keyword['project_id'];
+        $projectName = trim($keyword['project_name'] ?? '');
+        $backLabel = $projectName !== '' ? '← Back to ' . sanitize($projectName) : '← Back to Project';
+        $backUrl = $appUrl . '/index.php?op=project&id=' . $projectId;
 
         // Prepare chart data as JSON
         $chartLabels = array_map(fn($p) => formatDate($p['date']), $positionsAsc);
@@ -71,8 +75,8 @@ class Position
         return '
         <div class="container">
             <div class="mb-6">
-                <a href="' . $appUrl . '/index.php?op=dashboard"
-                    class="back-link">&larr; Back to Dashboard</a>
+                <a href="' . $backUrl . '"
+                    class="back-link">' . $backLabel . '</a>
             </div>
 
             <div class="detail-header">
