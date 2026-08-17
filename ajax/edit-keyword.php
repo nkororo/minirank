@@ -30,6 +30,9 @@ if (!$keyword) {
     jsonResponse(['success' => false, 'message' => 'Keyword not found'], 404);
 }
 
-$db->update('keywords', ['name' => $name], '`k_id` = ? AND `project_id` = ?', [$kId, $projectId]);
+$db->update('keywords', [
+    'name' => $name,
+    'updated_at' => date('Y-m-d H:i:s'),
+], '`k_id` = ? AND `project_id` = ?', [$kId, $projectId]);
 
-jsonResponse(['success' => true, 'data' => ['name' => $name]]);
+jsonResponse(['success' => true, 'data' => ['name' => $name, 'updated_at' => date('Y-m-d H:i:s')]]);

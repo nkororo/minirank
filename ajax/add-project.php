@@ -34,6 +34,7 @@ jsonResponse([
         'name' => $name,
         'domain' => $domain,
         'status' => 'active',
+        'updated_at' => date('Y-m-d H:i:s'),
         'keywords_count' => 0,
     ],
 ]);

@@ -28,6 +28,9 @@ if (!$project) {
 }
 
 $newStatus = $project['status'] === 'active' ? 'archived' : 'active';
-$db->update('projects', ['status' => $newStatus], '`project_id` = ? AND `user_id` = ?', [$projectId, $userId]);
+$db->update('projects', [
+    'status' => $newStatus,
+    'updated_at' => date('Y-m-d H:i:s'),
+], '`project_id` = ? AND `user_id` = ?', [$projectId, $userId]);
 
-jsonResponse(['success' => true, 'data' => ['status' => $newStatus]]);
+jsonResponse(['success' => true, 'data' => ['status' => $newStatus, 'updated_at' => date('Y-m-d H:i:s')]]);

@@ -48,6 +48,7 @@ function getKeywordsWithPositions(int $projectId): array
         'SELECT
             k.`k_id`,
             k.`name`,
+            k.`updated_at`,
             latest.`position` AS `current_position`,
             week_ago.`position` AS `previous_position`
         FROM `keywords` k
@@ -63,7 +64,7 @@ function getKeywordsWithPositions(int $projectId): array
             WHERE `date` <= DATE(\'now\', \'-7 days\')
         ) week_ago ON week_ago.`keyword_id` = k.`k_id` AND week_ago.`rn` = 1
         WHERE k.`project_id` = ?
-        ORDER BY k.`created_at` DESC',
+        ORDER BY k.`updated_at` DESC',
         [$projectId]
     );
 

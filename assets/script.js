@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var state = {
         allKeywords: [],
-        currentSort: { field: 'name', direction: 'asc' },
+        currentSort: { field: 'updated_at', direction: 'desc' },
         currentFilter: { search: '', trend: '' }
     };
 
@@ -87,6 +87,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (sortField === 'name') {
                 valA = a.name.toLowerCase();
                 valB = b.name.toLowerCase();
+            } else if (sortField === 'updated_at') {
+                valA = a.updated_at || '';
+                valB = b.updated_at || '';
             } else {
                 valA = a.current_position === null ? Infinity : a.current_position;
                 valB = b.current_position === null ? Infinity : b.current_position;
@@ -184,6 +187,9 @@ document.addEventListener('DOMContentLoaded', function () {
             for (var i = 0; i < state.allKeywords.length; i++) {
                 if (state.allKeywords[i].k_id === id) {
                     state.allKeywords[i].name = result.data.name;
+                    state.allKeywords[i].updated_at = result.data.updated_at;
+                    var edited = state.allKeywords.splice(i, 1)[0];
+                    state.allKeywords.unshift(edited);
                     break;
                 }
             }
@@ -301,9 +307,10 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     dom.sortSelect.addEventListener('change', function () {
-        var val = this.value.split('_');
-        state.currentSort.field = val[0];
-        state.currentSort.direction = val[1];
+        var parts = this.value.split('_');
+        var direction = parts.pop();
+        state.currentSort.field = parts.join('_');
+        state.currentSort.direction = direction;
         renderTable();
     });
 

@@ -105,6 +105,8 @@ class Project
                 </select>
                 <select id="sort-select"
                     class="form-select" style="width: auto; min-width: 180px;">
+                    <option value="updated_at_desc" selected>Recently Updated</option>
+                    <option value="updated_at_asc">Oldest Updated</option>
                     <option value="name_asc">Name A-Z</option>
                     <option value="name_desc">Name Z-A</option>
                     <option value="position_asc">Position Low-High</option>
@@ -217,7 +219,10 @@ class Project
 
             if ($project) {
                 $newStatus = $project['status'] === 'active' ? 'archived' : 'active';
-                $db->update('projects', ['status' => $newStatus], '`project_id` = ? AND `user_id` = ?', [$projectId, $userId]);
+                $db->update('projects', [
+                    'status' => $newStatus,
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ], '`project_id` = ? AND `user_id` = ?', [$projectId, $userId]);
             }
         }
 

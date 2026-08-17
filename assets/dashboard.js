@@ -172,6 +172,9 @@ document.addEventListener('DOMContentLoaded', function () {
             for (var i = 0; i < state.allProjects.length; i++) {
                 if (state.allProjects[i].project_id === projectId) {
                     state.allProjects[i].status = result.data.status;
+                    state.allProjects[i].updated_at = result.data.updated_at;
+                    var moved = state.allProjects.splice(i, 1)[0];
+                    state.allProjects.unshift(moved);
                     break;
                 }
             }

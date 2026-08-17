@@ -99,6 +99,27 @@ class Database
         $this->pdo->exec('CREATE INDEX IF NOT EXISTS `idx_projects_user_id` ON `projects`(`user_id`)');
         $this->pdo->exec('CREATE INDEX IF NOT EXISTS `idx_projects_status` ON `projects`(`status`)');
         $this->pdo->exec('CREATE INDEX IF NOT EXISTS `idx_keywords_project_id` ON `keywords`(`project_id`)');
+
+        // Add updated_at column to projects if missing
+        $this->addColumnIfNotExists('projects', 'updated_at', 'DATETIME DEFAULT CURRENT_TIMESTAMP');
+
+        // Add updated_at column to keywords if missing
+        $this->addColumnIfNotExists('keywords', 'updated_at', 'DATETIME DEFAULT CURRENT_TIMESTAMP');
+    }
+
+    /**
+     * Add a column to a table if it does not already exist.
+     */
+    private function addColumnIfNotExists(string $table, string $column, string $definition): void
+    {
+        $stmt = $this->pdo->query("PRAGMA table_info(`$table`)");
+        $columns = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($columns as $col) {
+            if ($col['name'] === $column) {
+                return;
+            }
+        }
+        $this->pdo->exec("ALTER TABLE `$table` ADD COLUMN `$column` $definition");
     }
 
     public function getPdo(): PDO

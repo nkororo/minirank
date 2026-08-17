@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS projects (
     domain TEXT NOT NULL DEFAULT '',
     status TEXT NOT NULL DEFAULT 'active',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(u_id)
 );
 
@@ -20,6 +21,7 @@ CREATE TABLE IF NOT EXISTS keywords (
     project_id INTEGER NOT NULL,
     name TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (project_id) REFERENCES projects(project_id)
 );
 

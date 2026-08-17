@@ -15,7 +15,7 @@ class Dashboard
                 p.`name`,
                 p.`domain`,
                 p.`status`,
-                p.`created_at`,
+                p.`updated_at`,
                 COUNT(k.`k_id`) AS `keywords_count`
             FROM `projects` p
             LEFT JOIN `keywords` k ON k.`project_id` = p.`project_id`
@@ -25,8 +25,8 @@ class Dashboard
                 p.`name`,
                 p.`domain`,
                 p.`status`,
-                p.`created_at`
-            ORDER BY p.`created_at` DESC',
+                p.`updated_at`
+            ORDER BY p.`updated_at` DESC',
             [$userId]
         );
 

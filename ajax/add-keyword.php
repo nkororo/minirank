@@ -26,6 +26,7 @@ jsonResponse([
     'data' => [
         'k_id' => $kId,
         'name' => $name,
+        'updated_at' => date('Y-m-d H:i:s'),
         'current_position' => 0,
         'trend' => 'stable',
     ],
