@@ -328,6 +328,23 @@ a {
     color: var(--color-text);
 }
 
+.keyword-link {
+    color: var(--color-text);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.keyword-link:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+.keyword-link:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius);
+}
+
 /* --- Tables --- */
 .table-wrapper {
     background-color: var(--color-card);

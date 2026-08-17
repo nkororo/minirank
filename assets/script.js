@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderKeywordRow(kw, globalIndex) {
         var html = '<tr data-id="' + kw.k_id + '">';
         html += '<td class="col-index table-row-number">' + (globalIndex + 1) + '</td>';
-        html += '<td class="col-auto">' + escapeHtml(kw.name) + '</td>';
+        html += '<td class="col-auto"><a href="index.php?op=positions&id=' + kw.k_id + '" class="link font-medium keyword-link">' + escapeHtml(kw.name) + '</a></td>';
         html += '<td class="col-position">' + (kw.current_position !== null ? kw.current_position : '-') + '</td>';
         html += '<td class="col-status">' + getTrendBadge(kw.trend) + '</td>';
         html += '<td class="col-actions">';
