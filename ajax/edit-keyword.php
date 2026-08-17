@@ -19,17 +19,17 @@ if ($kId <= 0 || $name === '') {
 }
 
 global $db;
-$userId = $_SESSION['user_id'];
+$projectId = $_SESSION['project_id'] ?? 0;
 
 $keyword = $db->fetchOne(
-    'SELECT `k_id` FROM `keywords` WHERE `k_id` = ? AND `user_id` = ?',
-    [$kId, $userId]
+    'SELECT `k_id` FROM `keywords` WHERE `k_id` = ? AND `project_id` = ?',
+    [$kId, $projectId]
 );
 
 if (!$keyword) {
     jsonResponse(['success' => false, 'message' => 'Keyword not found'], 404);
 }
 
-$db->update('keywords', ['name' => $name], '`k_id` = ? AND `user_id` = ?', [$kId, $userId]);
+$db->update('keywords', ['name' => $name], '`k_id` = ? AND `project_id` = ?', [$kId, $projectId]);
 
 jsonResponse(['success' => true, 'data' => ['name' => $name]]);

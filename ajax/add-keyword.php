@@ -17,7 +17,7 @@ if ($name === '') {
 
 global $db;
 $kId = $db->insert('keywords', [
-    'user_id' => $_SESSION['user_id'],
+    'project_id' => $_SESSION['project_id'] ?? 0,
     'name' => $name,
 ]);
 

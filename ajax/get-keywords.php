@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../init.php';
 
-$keywords = getKeywordsWithPositions($_SESSION['user_id']);
+$projectId = $_SESSION['project_id'] ?? 0;
+$keywords = getKeywordsWithPositions($projectId);
 
 jsonResponse(['success' => true, 'data' => $keywords]);

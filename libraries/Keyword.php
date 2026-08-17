@@ -21,11 +21,11 @@ class Keyword
     private function list(): string
     {
         global $db;
-        $userId = $_SESSION['user_id'];
+        $projectId = $_SESSION['project_id'] ?? 0;
 
         $keywords = $db->fetchAll(
-            'SELECT * FROM `keywords` WHERE `user_id` = ? ORDER BY `created_at` DESC',
-            [$userId]
+            'SELECT * FROM `keywords` WHERE `project_id` = ? ORDER BY `created_at` DESC',
+            [$projectId]
         );
 
         $rows = '';
@@ -76,7 +76,7 @@ class Keyword
             $name = trim($_POST['name'] ?? '');
             if ($name !== '') {
                 $db->insert('keywords', [
-                    'user_id' => $_SESSION['user_id'],
+                    'project_id' => $_SESSION['project_id'] ?? 0,
                     'name' => $name,
                 ]);
                 header('Location: ' . APP_URL . '/index.php?op=keywords');
@@ -105,12 +105,12 @@ class Keyword
     private function edit(): string
     {
         global $db;
-        $userId = $_SESSION['user_id'];
+        $projectId = $_SESSION['project_id'] ?? 0;
         $kid = (int) ($_GET['id'] ?? 0);
 
         $keyword = $db->fetchOne(
-            'SELECT * FROM `keywords` WHERE `k_id` = ? AND `user_id` = ?',
-            [$kid, $userId]
+            'SELECT * FROM `keywords` WHERE `k_id` = ? AND `project_id` = ?',
+            [$kid, $projectId]
         );
 
         if (!$keyword) {
@@ -126,7 +126,7 @@ class Keyword
 
             $name = trim($_POST['name'] ?? '');
             if ($name !== '') {
-                $db->update('keywords', ['name' => $name], '`k_id` = ? AND `user_id` = ?', [$kid, $userId]);
+                $db->update('keywords', ['name' => $name], '`k_id` = ? AND `project_id` = ?', [$kid, $projectId]);
                 header('Location: ' . APP_URL . '/index.php?op=keywords');
                 exit;
             }
@@ -153,10 +153,10 @@ class Keyword
     private function delete(): string
     {
         global $db;
-        $userId = $_SESSION['user_id'];
+        $projectId = $_SESSION['project_id'] ?? 0;
         $kid = (int) ($_GET['id'] ?? 0);
 
-        $db->delete('keywords', '`k_id` = ? AND `user_id` = ?', [$kid, $userId]);
+        $db->delete('keywords', '`k_id` = ? AND `project_id` = ?', [$kid, $projectId]);
         header('Location: ' . APP_URL . '/index.php?op=keywords');
         exit;
     }

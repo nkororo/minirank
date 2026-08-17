@@ -17,7 +17,7 @@ if ($kId <= 0) {
 }
 
 global $db;
-$userId = $_SESSION['user_id'];
-$db->delete('keywords', '`k_id` = ? AND `user_id` = ?', [$kId, $userId]);
+$projectId = $_SESSION['project_id'] ?? 0;
+$db->delete('keywords', '`k_id` = ? AND `project_id` = ?', [$kId, $projectId]);
 
 jsonResponse(['success' => true, 'data' => null]);

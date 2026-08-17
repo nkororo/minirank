@@ -40,7 +40,7 @@ function jsonResponse(array $data, int $statusCode = 200): void
     exit;
 }
 
-function getKeywordsWithPositions(int $userId): array
+function getKeywordsWithPositions(int $projectId): array
 {
     global $db;
 
@@ -62,9 +62,9 @@ function getKeywordsWithPositions(int $userId): array
             FROM `positions`
             WHERE `date` <= DATE(\'now\', \'-7 days\')
         ) week_ago ON week_ago.`keyword_id` = k.`k_id` AND week_ago.`rn` = 1
-        WHERE k.`user_id` = ?
+        WHERE k.`project_id` = ?
         ORDER BY k.`created_at` DESC',
-        [$userId]
+        [$projectId]
     );
 
     foreach ($rows as &$row) {
