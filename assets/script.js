@@ -142,6 +142,35 @@ document.addEventListener('DOMContentLoaded', function () {
         paginator.setData(filtered);
     }
 
+    /* Update the keyword metrics displayed in the stat cards */
+    function updateProjectMetrics() {
+        var pmTotal = document.getElementById('pm-total');
+        var pmTop = document.getElementById('pm-top');
+        var pmTrending = document.getElementById('pm-trending');
+        if (!pmTotal) {
+            return;
+        }
+
+        var total = state.allKeywords.length;
+        pmTotal.textContent = total;
+
+        /* Compute top keyword by lowest current position > 0 */
+        var withPosition = state.allKeywords.filter(function (kw) {
+            return kw.current_position !== null && kw.current_position > 0;
+        });
+        withPosition.sort(function (a, b) {
+            return a.current_position - b.current_position;
+        });
+
+        if (withPosition.length > 0) {
+            pmTop.textContent = escapeHtml(withPosition[0].name) + ' (#' + withPosition[0].current_position + ')';
+        } else {
+            pmTop.textContent = '\u2014';
+        }
+
+        /* best_trending requires 30-day history; keep server value, refresh on position refresh */
+    }
+
     async function loadKeywords() {
         try {
             var result = await apiCall('ajax/get-keywords.php');
@@ -165,6 +194,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             state.allKeywords.unshift(result.data);
             renderTable();
+            updateProjectMetrics();
             dom.addModal.classList.remove('is-active');
             dom.addForm.reset();
         } catch (err) {
@@ -194,6 +224,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
             renderTable();
+            updateProjectMetrics();
             dom.editModal.classList.remove('is-active');
         } catch (err) {
             showError(dom.editError, err.message);
@@ -214,6 +245,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return kw.k_id !== id;
             });
             renderTable();
+            updateProjectMetrics();
         } catch (err) {
             var row = dom.tableBody.querySelector('tr[data-id="' + id + '"]');
             if (row) {
@@ -239,6 +271,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 body: formData
             });
             await loadKeywords();
+
+            /* Fetch updated trending keyword from server */
+            var statsResult = await apiCall('ajax/get-project-stats.php');
+            var pmTrending = document.getElementById('pm-trending');
+            if (pmTrending) {
+                pmTrending.textContent = statsResult.data.best_trending
+                    ? escapeHtml(statsResult.data.best_trending)
+                    : '\u2014';
+            }
         } catch (err) {
             showError(dom.addError, err.message);
         } finally {

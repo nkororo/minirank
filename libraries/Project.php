@@ -53,6 +53,22 @@ class Project
             : '<span class="badge badge-success">Active</span>';
         $domainDisplay = $project['domain'] !== '' ? ' <span class="project-domain">(' . sanitize($project['domain']) . ')</span>' : '';
 
+        /* Fetch keyword statistics for this project */
+        $kwStats = getProjectKeywordStats($projectId);
+
+        /* Build top keyword display */
+        $topDisplay = '—';
+        if (!empty($kwStats['top_keywords'])) {
+            $topKw = $kwStats['top_keywords'][0];
+            $topDisplay = sanitize($topKw['name']) . ' (#' . $topKw['position'] . ')';
+        }
+
+        /* Build trending display */
+        $trendingDisplay = '—';
+        if ($kwStats['best_trending']) {
+            $trendingDisplay = sanitize($kwStats['best_trending']);
+        }
+
         /* Build archived banner */
         $archivedBanner = '';
         if ($isArchived) {
@@ -85,6 +101,22 @@ class Project
                         <button id="btn-refresh" ' . $refreshBtnDisabled . '
                             class="' . $refreshBtnClass . '">Refresh Positions</button>
                     </div>
+                </div>
+            </div>
+
+            <!-- Keyword Stats Cards -->
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Keywords</div>
+                    <div id="pm-total" class="stat-value">' . $kwStats['total_keywords'] . '</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Top Keyword</div>
+                    <div id="pm-top" class="stat-value stat-value--primary">' . $topDisplay . '</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Trending</div>
+                    <div id="pm-trending" class="stat-value stat-value--success">' . $trendingDisplay . '</div>
                 </div>
             </div>
 
@@ -189,7 +221,8 @@ class Project
             </div>
         </div>
 
-        <script>window.__PROJECT_ID__ = ' . (int) $projectId . ';</script>';
+        <script>window.__PROJECT_ID__ = ' . (int) $projectId . ';</script>
+        <script>window.__PROJECT_STATS__ = ' . json_encode($kwStats) . ';</script>';
     }
 
     /**

@@ -91,3 +91,81 @@ function calculateTrend(?int $current, ?int $previous): string
 
     return 'stable';
 }
+
+/**
+ * Get keyword statistics for a single project:
+ * - total_keywords: exact count of keywords
+ * - top_keywords: up to 5 keywords with best (lowest) position > 0
+ * - best_trending: keyword name with most positive trend in last 30 days
+ */
+function getProjectKeywordStats(int $projectId): array
+{
+    global $db;
+
+    /* Total keyword count */
+    $countRow = $db->fetchOne(
+        'SELECT COUNT(`k_id`) AS `total_keywords`
+         FROM `keywords`
+         WHERE `project_id` = ?',
+        [$projectId]
+    );
+    $totalKeywords = $countRow ? (int) $countRow['total_keywords'] : 0;
+
+    /* Top 5 keywords (lowest current position > 0) */
+    $topRows = $db->fetchAll(
+        'SELECT
+            k.`name`,
+            latest.`position`
+        FROM `keywords` k
+        INNER JOIN (
+            SELECT `keyword_id`, `position`,
+                   ROW_NUMBER() OVER (PARTITION BY `keyword_id` ORDER BY `date` DESC) AS `rn`
+            FROM `positions`
+        ) latest ON latest.`keyword_id` = k.`k_id` AND latest.`rn` = 1
+        WHERE k.`project_id` = ?
+          AND latest.`position` > 0
+        ORDER BY latest.`position` ASC
+        LIMIT 5',
+        [$projectId]
+    );
+    $topKeywords = [];
+    foreach ($topRows as $row) {
+        $topKeywords[] = [
+            'name' => $row['name'],
+            'position' => (int) $row['position'],
+        ];
+    }
+
+    /* Best trending keyword (most improved in last 30 days) */
+    $trendRow = $db->fetchOne(
+        'SELECT
+            k.`name`,
+            cur.`position` AS `current_position`,
+            old.`position` AS `old_position`
+        FROM `keywords` k
+        INNER JOIN (
+            SELECT `keyword_id`, `position`,
+                   ROW_NUMBER() OVER (PARTITION BY `keyword_id` ORDER BY `date` DESC) AS `rn`
+            FROM `positions`
+        ) cur ON cur.`keyword_id` = k.`k_id` AND cur.`rn` = 1
+        LEFT JOIN (
+            SELECT `keyword_id`, `position`,
+                   ROW_NUMBER() OVER (PARTITION BY `keyword_id` ORDER BY `date` DESC) AS `rn`
+            FROM `positions`
+            WHERE `date` <= DATE(\'now\', \'-30 days\')
+        ) old ON old.`keyword_id` = k.`k_id` AND old.`rn` = 1
+        WHERE k.`project_id` = ?
+          AND cur.`position` IS NOT NULL
+          AND old.`position` IS NOT NULL
+        ORDER BY (old.`position` - cur.`position`) DESC
+        LIMIT 1',
+        [$projectId]
+    );
+    $bestTrending = $trendRow ? $trendRow['name'] : null;
+
+    return [
+        'total_keywords' => $totalKeywords,
+        'top_keywords' => $topKeywords,
+        'best_trending' => $bestTrending,
+    ];
+}
