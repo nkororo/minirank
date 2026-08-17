@@ -68,8 +68,9 @@ class Keyword
         global $db;
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
-                redirect(APP_URL . '/index.php?op=add_keyword');
+            if (!(isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? ''))) {
+                header('Location: ' . APP_URL . '/index.php?op=add_keyword');
+                exit;
             }
 
             $name = trim($_POST['name'] ?? '');
@@ -78,7 +79,8 @@ class Keyword
                     'user_id' => $_SESSION['user_id'],
                     'name' => $name,
                 ]);
-                redirect(APP_URL . '/index.php?op=keywords');
+                header('Location: ' . APP_URL . '/index.php?op=keywords');
+                exit;
             }
         }
 
@@ -112,18 +114,21 @@ class Keyword
         );
 
         if (!$keyword) {
-            redirect(APP_URL . '/index.php?op=keywords');
+            header('Location: ' . APP_URL . '/index.php?op=keywords');
+            exit;
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
-                redirect(APP_URL . '/index.php?op=edit_keyword&id=' . $kid);
+            if (!(isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? ''))) {
+                header('Location: ' . APP_URL . '/index.php?op=edit_keyword&id=' . $kid);
+                exit;
             }
 
             $name = trim($_POST['name'] ?? '');
             if ($name !== '') {
                 $db->update('keywords', ['name' => $name], '`k_id` = ? AND `user_id` = ?', [$kid, $userId]);
-                redirect(APP_URL . '/index.php?op=keywords');
+                header('Location: ' . APP_URL . '/index.php?op=keywords');
+                exit;
             }
         }
 
@@ -152,6 +157,7 @@ class Keyword
         $kid = (int) ($_GET['id'] ?? 0);
 
         $db->delete('keywords', '`k_id` = ? AND `user_id` = ?', [$kid, $userId]);
-        redirect(APP_URL . '/index.php?op=keywords');
+        header('Location: ' . APP_URL . '/index.php?op=keywords');
+        exit;
     }
 }

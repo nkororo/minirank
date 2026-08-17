@@ -3,7 +3,8 @@
 require_once __DIR__ . '/init.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_GET['op'])) {
-    redirect(APP_URL . '/index.php?op=dashboard');
+    header('Location: ' . APP_URL . '/index.php?op=dashboard');
+    exit;
 }
 
 $op = $_GET['op'] ?? 'dashboard';

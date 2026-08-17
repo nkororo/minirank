@@ -27,6 +27,7 @@ require_once __DIR__ . '/libraries/Database.php';
 $db = new Database();
 
 $currentOp = $_GET['op'] ?? 'dashboard';
-if (!isLoggedIn() && !isPublicOp($currentOp)) {
-    redirect(APP_URL . '/index.php?op=login');
+if (!isset($_SESSION['user_id']) && !isPublicOp($currentOp)) {
+    header('Location: ' . APP_URL . '/index.php?op=login');
+    exit;
 }

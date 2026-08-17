@@ -18,24 +18,6 @@ function formatDate(string $date): string
     return date('d F Y', $timestamp);
 }
 
-function redirect(string $url): void
-{
-    header('Location: ' . $url);
-    exit;
-}
-
-function isLoggedIn(): bool
-{
-    return isset($_SESSION['user_id']);
-}
-
-function requireAuth(): void
-{
-    if (!isLoggedIn()) {
-        redirect(APP_URL . '/index.php?op=login');
-    }
-}
-
 function isPublicOp(string $op): bool
 {
     global $PUBLIC_OPS;
@@ -48,11 +30,6 @@ function generateCsrfToken(): string
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     }
     return $_SESSION['csrf_token'];
-}
-
-function verifyCsrfToken(string $token): bool
-{
-    return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
 }
 
 function jsonResponse(array $data, int $statusCode = 200): void

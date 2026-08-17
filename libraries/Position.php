@@ -26,7 +26,8 @@ class Position
         );
 
         if (!$keyword) {
-            redirect(APP_URL . '/index.php?op=dashboard');
+            header('Location: ' . APP_URL . '/index.php?op=dashboard');
+            exit;
         }
 
         // Count distinct users tracking this exact keyword phrase
@@ -357,6 +358,7 @@ class Position
             [$pid, $userId]
         );
 
-        redirect(APP_URL . '/index.php?op=positions&id=' . $kid);
+        header('Location: ' . APP_URL . '/index.php?op=positions&id=' . $kid);
+        exit;
     }
 }

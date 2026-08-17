@@ -15,7 +15,7 @@
             <a href="<?php echo sanitize(APP_URL); ?>/index.php?op=dashboard"
                 class="text-xl font-bold text-blue-600"><?php echo sanitize(APP_NAME); ?></a>
             <div class="flex gap-4 items-center">
-                <?php if (isLoggedIn()): ?>
+                <?php if (isset($_SESSION['user_id'])): ?>
                     <a href="<?php echo sanitize(APP_URL); ?>/index.php?op=logout"
                         class="text-red-500 hover:underline">Logout</a>
                 <?php else: ?>

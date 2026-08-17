@@ -94,9 +94,10 @@ class Auth
     {
         global $db;
 
-        if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        if (!(isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? ''))) {
             $_SESSION['auth_error'] = 'Invalid form submission.';
-            redirect(APP_URL . '/index.php?op=login');
+            header('Location: ' . APP_URL . '/index.php?op=login');
+            exit;
         }
 
         $email = trim($_POST['email'] ?? '');
@@ -104,30 +105,34 @@ class Auth
 
         if ($email === '' || $password === '') {
             $_SESSION['auth_error'] = 'Email and password are required.';
-            redirect(APP_URL . '/index.php?op=login');
+            header('Location: ' . APP_URL . '/index.php?op=login');
+            exit;
         }
 
         $user = $db->fetchOne('SELECT * FROM `users` WHERE `email` = ?', [$email]);
 
         if (!$user || !password_verify($password, $user['password_hash'])) {
             $_SESSION['auth_error'] = 'Invalid email or password.';
-            redirect(APP_URL . '/index.php?op=login');
+            header('Location: ' . APP_URL . '/index.php?op=login');
+            exit;
         }
 
         session_regenerate_id(true);
         $_SESSION['user_id'] = $user['u_id'];
         unset($_SESSION['csrf_token']);
 
-        redirect(APP_URL . '/index.php?op=dashboard');
+        header('Location: ' . APP_URL . '/index.php?op=dashboard');
+        exit;
     }
 
     private function register(): string
     {
         global $db;
 
-        if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        if (!(isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? ''))) {
             $_SESSION['auth_error'] = 'Invalid form submission.';
-            redirect(APP_URL . '/index.php?op=register');
+            header('Location: ' . APP_URL . '/index.php?op=register');
+            exit;
         }
 
         $email = trim($_POST['email'] ?? '');
@@ -136,23 +141,27 @@ class Auth
 
         if ($email === '' || $password === '') {
             $_SESSION['auth_error'] = 'Email and password are required.';
-            redirect(APP_URL . '/index.php?op=register');
+            header('Location: ' . APP_URL . '/index.php?op=register');
+            exit;
         }
 
         if ($password !== $confirmPassword) {
             $_SESSION['auth_error'] = 'Passwords do not match.';
-            redirect(APP_URL . '/index.php?op=register');
+            header('Location: ' . APP_URL . '/index.php?op=register');
+            exit;
         }
 
         if (strlen($password) < 8) {
             $_SESSION['auth_error'] = 'Password must be at least 8 characters.';
-            redirect(APP_URL . '/index.php?op=register');
+            header('Location: ' . APP_URL . '/index.php?op=register');
+            exit;
         }
 
         $existing = $db->fetchOne('SELECT `u_id` FROM `users` WHERE `email` = ?', [$email]);
         if ($existing) {
             $_SESSION['auth_error'] = 'An account with this email already exists.';
-            redirect(APP_URL . '/index.php?op=register');
+            header('Location: ' . APP_URL . '/index.php?op=register');
+            exit;
         }
 
         $db->insert('users', [
@@ -161,13 +170,15 @@ class Auth
         ]);
 
         $_SESSION['auth_error'] = 'Account created. Please login.';
-        redirect(APP_URL . '/index.php?op=login');
+        header('Location: ' . APP_URL . '/index.php?op=login');
+        exit;
     }
 
     private function logout(): string
     {
         session_unset();
         session_destroy();
-        redirect(APP_URL . '/index.php?op=login');
+        header('Location: ' . APP_URL . '/index.php?op=login');
+        exit;
     }
 }
