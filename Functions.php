@@ -75,17 +75,38 @@ function getKeywordsWithPositions(int $projectId): array
     return $rows;
 }
 
-function calculateTrend(?int $current, ?int $previous): string
+/**
+ * Calculate the 7-day trend for a keyword.
+ *
+ * @param  ?int  $current     Latest position (null/0 = dropped out)
+ * @param  ?int  $sevenDaysAgo Position from 7 days ago (null/0 = no history)
+ * @return string 'improved', 'declined', or 'stable'
+ */
+function calculateTrend(?int $current, ?int $sevenDaysAgo): string
 {
-    if ($current === null || $previous === null) {
-        return 'stable';
-    }
+    $hasCurrent = $current !== null && $current > 0;
+    $hasPrevious = $sevenDaysAgo !== null && $sevenDaysAgo > 0;
 
-    if ($current < $previous) {
+    /* New entry: had no position 7 days ago, now ranked */
+    if (!$hasPrevious && $hasCurrent) {
         return 'improved';
     }
 
-    if ($current > $previous) {
+    /* Dropped out: was ranked 7 days ago, now null/0 */
+    if ($hasPrevious && !$hasCurrent) {
+        return 'declined';
+    }
+
+    /* Both null/0 or both equal: stable */
+    if (!$hasCurrent && !$hasPrevious) {
+        return 'stable';
+    }
+
+    if ($current < $sevenDaysAgo) {
+        return 'improved';
+    }
+
+    if ($current > $sevenDaysAgo) {
         return 'declined';
     }
 
