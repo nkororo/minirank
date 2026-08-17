@@ -59,9 +59,6 @@ class Position
         $chartLabelsJson = json_encode($chartLabels);
         $chartDataJson = json_encode($chartData);
 
-        // Build table rows
-        $tableRows = $this->buildTableRows($positionsDesc);
-
         // Position badge helper values
         $currentPosition = !empty($positionsDesc) ? (int) $positionsDesc[0]['position'] : null;
         $positionBadge = $currentPosition !== null ? $this->getPositionBadge($currentPosition) : '-';
@@ -107,7 +104,7 @@ class Position
                                 <th class="py-3 px-4 text-left">Position</th>
                             </tr>
                         </thead>
-                        <tbody id="history-table-body">' . $tableRows . '</tbody>
+                        <tbody id="history-table-body"></tbody>
                     </table>
                 </div>
                 <div id="pagination-controls" class="flex justify-between items-center px-6 py-4 border-t"></div>
@@ -130,6 +127,13 @@ class Position
                     var wrapper = document.getElementById("chart-wrapper");
                     if (wrapper) {
                         wrapper.innerHTML = \'<div class="flex items-center justify-center h-full text-gray-400">No data available for chart</div>\';
+                    }
+                    return;
+                }
+                if (typeof Chart === "undefined") {
+                    var wrapper = document.getElementById("chart-wrapper");
+                    if (wrapper) {
+                        wrapper.innerHTML = \'<div class="flex items-center justify-center h-full text-gray-400">Chart library failed to load</div>\';
                     }
                     return;
                 }
@@ -232,13 +236,6 @@ class Position
                 return html;
             }
 
-            var paginator = new TablePaginator({
-                tableBody: tbody,
-                paginationContainer: paginationControls,
-                pageSize: 10,
-                renderRow: renderRow
-            });
-
             function initPagination() {
                 if (allRows.length === 0) {
                     historyEmpty.classList.remove("hidden");
@@ -249,33 +246,33 @@ class Position
                 historyEmpty.classList.add("hidden");
                 historyContent.classList.remove("hidden");
                 paginationControls.classList.remove("hidden");
-                paginator.setData(allRows);
+
+                if (typeof TablePaginator !== "undefined") {
+                    var paginator = new TablePaginator({
+                        tableBody: tbody,
+                        paginationContainer: paginationControls,
+                        pageSize: 10,
+                        renderRow: renderRow
+                    });
+                    paginator.setData(allRows);
+                } else {
+                    /* Fallback: render first 10 rows directly if TablePaginator is unavailable */
+                    var fallbackSlice = allRows.slice(0, 10);
+                    var html = "";
+                    for (var i = 0; i < fallbackSlice.length; i++) {
+                        html += renderRow(fallbackSlice[i], i);
+                    }
+                    tbody.innerHTML = html;
+                }
             }
 
             // --- Init ---
-            initChart();
-            initPagination();
+            document.addEventListener("DOMContentLoaded", function () {
+                initChart();
+                initPagination();
+            });
         })();
         </script>';
-    }
-
-    private function buildTableRows(array $positions): string
-    {
-        $rows = '';
-        $total = count($positions);
-        $end = min($total, 10);
-
-        for ($i = 0; $i < $end; $i++) {
-            $pos = $positions[$i];
-            $rows .= '
-                <tr class="border-b hover:bg-gray-50">
-                    <td class="py-3 px-4 text-gray-500">' . ($i + 1) . '</td>
-                    <td class="py-3 px-4">' . sanitize(formatDate($pos['date'])) . '</td>
-                    <td class="py-3 px-4">' . $this->getPositionBadge((int) $pos['position']) . '</td>
-                </tr>';
-        }
-
-        return $rows;
     }
 
     private function getPositionBadge(int $position): string
