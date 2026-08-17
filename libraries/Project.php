@@ -56,17 +56,22 @@ class Project
         /* Fetch keyword statistics for this project */
         $kwStats = getProjectKeywordStats($projectId);
 
-        /* Build top keyword display */
-        $topDisplay = '—';
-        if (!empty($kwStats['top_keywords'])) {
-            $topKw = $kwStats['top_keywords'][0];
-            $topDisplay = sanitize($topKw['name']) . ' (#' . $topKw['position'] . ')';
+        /* Build top 3 display */
+        $fallback = 'not enough data';
+        $top3Display = $fallback;
+        if (!empty($kwStats['top_3'])) {
+            $topParts = [];
+            foreach ($kwStats['top_3'] as $kw) {
+                $topParts[] = sanitize($kw['name']) . ' (#' . $kw['position'] . ')';
+            }
+            $top3Display = implode(', ', $topParts);
         }
 
-        /* Build trending display */
-        $trendingDisplay = '—';
-        if ($kwStats['best_trending']) {
-            $trendingDisplay = sanitize($kwStats['best_trending']);
+        /* Build 7-day best trend display */
+        $trend7dDisplay = $fallback;
+        if ($kwStats['best_trend_7d']) {
+            $trend7dDisplay = sanitize($kwStats['best_trend_7d']['name'])
+                . ' (avg. #' . $kwStats['best_trend_7d']['avg_position'] . ')';
         }
 
         /* Build archived banner */
@@ -111,12 +116,12 @@ class Project
                     <div id="pm-total" class="stat-value">' . $kwStats['total_keywords'] . '</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Top Keyword</div>
-                    <div id="pm-top" class="stat-value stat-value--primary">' . $topDisplay . '</div>
+                    <div class="stat-label">Top 3 Keywords</div>
+                    <div id="pm-top" class="stat-value stat-value--primary">' . $top3Display . '</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Trending</div>
-                    <div id="pm-trending" class="stat-value stat-value--success">' . $trendingDisplay . '</div>
+                    <div class="stat-label">7-Day Best Trend</div>
+                    <div id="pm-trend7d" class="stat-value stat-value--success">' . $trend7dDisplay . '</div>
                 </div>
             </div>
 

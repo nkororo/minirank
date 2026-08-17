@@ -116,8 +116,8 @@ function calculateTrend(?int $current, ?int $sevenDaysAgo): string
 /**
  * Get keyword statistics for a single project:
  * - total_keywords: exact count of keywords
- * - top_keywords: up to 5 keywords with best (lowest) position > 0
- * - best_trending: keyword name with most positive trend in last 30 days
+ * - top_3: up to 3 keywords with best (lowest) position > 0
+ * - best_trend_7d: keyword with best 7-day average rank, plus its avg score
  */
 function getProjectKeywordStats(int $projectId): array
 {
@@ -132,7 +132,7 @@ function getProjectKeywordStats(int $projectId): array
     );
     $totalKeywords = $countRow ? (int) $countRow['total_keywords'] : 0;
 
-    /* Top 5 keywords (lowest current position > 0) */
+    /* Top 3 keywords (lowest current position > 0) */
     $topRows = $db->fetchAll(
         'SELECT
             k.`name`,
@@ -146,47 +146,43 @@ function getProjectKeywordStats(int $projectId): array
         WHERE k.`project_id` = ?
           AND latest.`position` > 0
         ORDER BY latest.`position` ASC
-        LIMIT 5',
+        LIMIT 3',
         [$projectId]
     );
-    $topKeywords = [];
+    $top3 = [];
     foreach ($topRows as $row) {
-        $topKeywords[] = [
+        $top3[] = [
             'name' => $row['name'],
             'position' => (int) $row['position'],
         ];
     }
 
-    /* Best trending keyword (most improved in last 30 days) */
+    /* 7-Day Best Trend: keyword with best (lowest) average position over last 7 days */
     $trendRow = $db->fetchOne(
         'SELECT
             k.`name`,
-            cur.`position` AS `current_position`,
-            old.`position` AS `old_position`
+            ROUND(AVG(p.`position`), 1) AS `avg_position`
         FROM `keywords` k
-        INNER JOIN (
-            SELECT `keyword_id`, `position`,
-                   ROW_NUMBER() OVER (PARTITION BY `keyword_id` ORDER BY `date` DESC) AS `rn`
-            FROM `positions`
-        ) cur ON cur.`keyword_id` = k.`k_id` AND cur.`rn` = 1
-        LEFT JOIN (
-            SELECT `keyword_id`, `position`,
-                   ROW_NUMBER() OVER (PARTITION BY `keyword_id` ORDER BY `date` DESC) AS `rn`
-            FROM `positions`
-            WHERE `date` <= DATE(\'now\', \'-30 days\')
-        ) old ON old.`keyword_id` = k.`k_id` AND old.`rn` = 1
+        INNER JOIN `positions` p ON p.`keyword_id` = k.`k_id`
         WHERE k.`project_id` = ?
-          AND cur.`position` IS NOT NULL
-          AND old.`position` IS NOT NULL
-        ORDER BY (old.`position` - cur.`position`) DESC
+          AND p.`date` >= DATE(\'now\', \'-7 days\')
+          AND p.`position` > 0
+        GROUP BY k.`k_id`, k.`name`
+        ORDER BY `avg_position` ASC
         LIMIT 1',
         [$projectId]
     );
-    $bestTrending = $trendRow ? $trendRow['name'] : null;
+    $bestTrend = null;
+    if ($trendRow) {
+        $bestTrend = [
+            'name' => $trendRow['name'],
+            'avg_position' => (float) $trendRow['avg_position'],
+        ];
+    }
 
     return [
         'total_keywords' => $totalKeywords,
-        'top_keywords' => $topKeywords,
-        'best_trending' => $bestTrending,
+        'top_3' => $top3,
+        'best_trend_7d' => $bestTrend,
     ];
 }

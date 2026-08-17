@@ -37,7 +37,7 @@ jsonResponse([
         'updated_at' => date('Y-m-d H:i:s'),
         'keywords_count' => 0,
         'total_keywords' => 0,
-        'top_keywords' => [],
-        'best_trending' => null,
+        'top_3' => [],
+        'best_trend_7d' => null,
     ],
 ]);

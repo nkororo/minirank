@@ -142,33 +142,58 @@ document.addEventListener('DOMContentLoaded', function () {
         paginator.setData(filtered);
     }
 
-    /* Update the keyword metrics displayed in the stat cards */
-    function updateProjectMetrics() {
+    var fallback = 'not enough data';
+
+    /* Update the keyword stat cards displayed in the project header */
+    function updateProjectStatsCards() {
         var pmTotal = document.getElementById('pm-total');
         var pmTop = document.getElementById('pm-top');
-        var pmTrending = document.getElementById('pm-trending');
+        var pmTrend7d = document.getElementById('pm-trend7d');
         if (!pmTotal) {
             return;
         }
 
+        /* Card 1: Total Keywords */
         var total = state.allKeywords.length;
         pmTotal.textContent = total;
 
-        /* Compute top keyword by lowest current position > 0 */
+        /* Card 2: Top 3 Keywords (lowest current position > 0) */
         var withPosition = state.allKeywords.filter(function (kw) {
             return kw.current_position !== null && kw.current_position > 0;
         });
         withPosition.sort(function (a, b) {
             return a.current_position - b.current_position;
         });
+        var top3 = withPosition.slice(0, 3);
 
-        if (withPosition.length > 0) {
-            pmTop.textContent = escapeHtml(withPosition[0].name) + ' (#' + withPosition[0].current_position + ')';
+        if (top3.length > 0) {
+            var parts = [];
+            for (var i = 0; i < top3.length; i++) {
+                parts.push(escapeHtml(top3[i].name) + ' (#' + top3[i].current_position + ')');
+            }
+            pmTop.textContent = parts.join(', ');
         } else {
-            pmTop.textContent = '\u2014';
+            pmTop.textContent = fallback;
         }
 
-        /* best_trending requires 30-day history; keep server value, refresh on position refresh */
+        /* Card 3: 7-Day Best Trend (best improvement from 7-day-ago position) */
+        var withHistory = state.allKeywords.filter(function (kw) {
+            return kw.current_position !== null && kw.current_position > 0
+                && kw.previous_position !== null && kw.previous_position > 0;
+        });
+        withHistory.sort(function (a, b) {
+            var impA = a.previous_position - a.current_position;
+            var impB = b.previous_position - b.current_position;
+            return impB - impA;
+        });
+
+        if (withHistory.length > 0) {
+            var best = withHistory[0];
+            var avg = ((best.previous_position + best.current_position) / 2).toFixed(1);
+            pmTrend7d.textContent = escapeHtml(best.name) + ' (avg. #' + avg + ')';
+        } else {
+            pmTrend7d.textContent = fallback;
+        }
     }
 
     async function loadKeywords() {
@@ -194,7 +219,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             state.allKeywords.unshift(result.data);
             renderTable();
-            updateProjectMetrics();
+            updateProjectStatsCards();
             dom.addModal.classList.remove('is-active');
             dom.addForm.reset();
         } catch (err) {
@@ -224,7 +249,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
             renderTable();
-            updateProjectMetrics();
+            updateProjectStatsCards();
             dom.editModal.classList.remove('is-active');
         } catch (err) {
             showError(dom.editError, err.message);
@@ -245,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return kw.k_id !== id;
             });
             renderTable();
-            updateProjectMetrics();
+            updateProjectStatsCards();
         } catch (err) {
             var row = dom.tableBody.querySelector('tr[data-id="' + id + '"]');
             if (row) {
@@ -272,13 +297,34 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             await loadKeywords();
 
-            /* Fetch updated trending keyword from server */
+            /* Fetch server-computed stats for accurate 7-day avg */
             var statsResult = await apiCall('ajax/get-project-stats.php');
-            var pmTrending = document.getElementById('pm-trending');
-            if (pmTrending) {
-                pmTrending.textContent = statsResult.data.best_trending
-                    ? escapeHtml(statsResult.data.best_trending)
-                    : '\u2014';
+            var stats = statsResult.data;
+
+            var pmTop = document.getElementById('pm-top');
+            var pmTrend7d = document.getElementById('pm-trend7d');
+
+            /* Update Top 3 card from server data */
+            if (pmTop && stats.top_3) {
+                if (stats.top_3.length > 0) {
+                    var topParts = [];
+                    for (var i = 0; i < stats.top_3.length; i++) {
+                        topParts.push(escapeHtml(stats.top_3[i].name) + ' (#' + stats.top_3[i].position + ')');
+                    }
+                    pmTop.textContent = topParts.join(', ');
+                } else {
+                    pmTop.textContent = fallback;
+                }
+            }
+
+            /* Update 7-Day Best Trend card from server data */
+            if (pmTrend7d) {
+                if (stats.best_trend_7d) {
+                    pmTrend7d.textContent = escapeHtml(stats.best_trend_7d.name)
+                        + ' (avg. #' + stats.best_trend_7d.avg_position + ')';
+                } else {
+                    pmTrend7d.textContent = fallback;
+                }
             }
         } catch (err) {
             showError(dom.addError, err.message);
