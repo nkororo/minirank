@@ -8,7 +8,15 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
     <link rel="stylesheet" href="<?php echo sanitize(APP_URL); ?>/assets/styles.css">
     <script src="<?php echo sanitize(APP_URL); ?>/assets/TablePaginator.js" defer></script>
-    <script src="<?php echo sanitize(APP_URL); ?>/assets/script.js" defer></script>
+    <?php
+    /* Load page-specific JavaScript */
+    $currentOp = $_GET['op'] ?? 'dashboard';
+    if ($currentOp === 'project') {
+        echo '<script src="' . sanitize(APP_URL) . '/assets/script.js" defer></script>';
+    } elseif ($currentOp === 'dashboard' || in_array($currentOp, ['add_project', 'archive_project', 'delete_project'], true)) {
+        echo '<script src="' . sanitize(APP_URL) . '/assets/dashboard.js" defer></script>';
+    }
+    ?>
 </head>
 <body class="bg-gray-100 min-h-screen">
     <nav class="bg-white shadow mb-6">

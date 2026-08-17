@@ -11,10 +11,28 @@ if (!(isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $_P
 }
 
 try {
-    $userId = $_SESSION['user_id'] ?? 1;
+    $projectId = (int) ($_POST['project_id'] ?? 0);
+    if ($projectId <= 0) {
+        jsonResponse(['success' => false, 'message' => 'Invalid project ID'], 400);
+    }
+
+    $userId = $_SESSION['user_id'] ?? 0;
     $pdo = $db->getPdo();
 
-    // Default demo keywords to seed when user has none
+    /* Verify project ownership */
+    $project = $db->fetchOne(
+        'SELECT `project_id`, `status` FROM `projects` WHERE `project_id` = ? AND `user_id` = ?',
+        [$projectId, $userId]
+    );
+
+    if (!$project) {
+        jsonResponse(['success' => false, 'message' => 'Project not found'], 404);
+    }
+
+    if ($project['status'] === 'archived') {
+        jsonResponse(['success' => false, 'message' => 'Cannot refresh positions for an archived project'], 400);
+    }
+
     $demoKeywords = [
         'seo tools',
         'rank tracker',
@@ -28,27 +46,26 @@ try {
         'local seo',
     ];
 
-    // Check existing keywords for this user
+    /* Check existing keywords for this project */
     $existing = $db->fetchAll(
-        'SELECT `k_id` FROM `keywords` WHERE `user_id` = ?',
-        [$userId]
+        'SELECT `k_id` FROM `keywords` WHERE `project_id` = ?',
+        [$projectId]
     );
 
     if (empty($existing)) {
-        // Case A: No keywords — insert 10 demo keywords
+        /* No keywords — insert 10 demo keywords */
         foreach ($demoKeywords as $name) {
             $db->insert('keywords', [
-                'user_id' => $userId,
+                'project_id' => $projectId,
                 'name'    => $name,
             ]);
         }
 
         $keywords = $db->fetchAll(
-            'SELECT `k_id` FROM `keywords` WHERE `user_id` = ?',
-            [$userId]
+            'SELECT `k_id` FROM `keywords` WHERE `project_id` = ?',
+            [$projectId]
         );
     } else {
-        // Case B: Keywords already exist — use them
         $keywords = $existing;
     }
 

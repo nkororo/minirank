@@ -17,6 +17,13 @@ switch ($op) {
         require_once __DIR__ . '/libraries/Auth.php';
         $page = new Auth();
         break;
+    case 'project':
+    case 'add_project':
+    case 'archive_project':
+    case 'delete_project':
+        require_once __DIR__ . '/libraries/Project.php';
+        $page = new Project();
+        break;
     case 'keywords':
     case 'add_keyword':
     case 'edit_keyword':

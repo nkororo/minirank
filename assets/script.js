@@ -4,9 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var state = {
         allKeywords: [],
         currentSort: { field: 'name', direction: 'asc' },
-        currentFilter: { search: '', trend: '' },
-        currentPage: 1,
-        pageSize: 10
+        currentFilter: { search: '', trend: '' }
     };
 
     var dom = {
@@ -30,6 +28,11 @@ document.addEventListener('DOMContentLoaded', function () {
         editId: document.getElementById('edit-id'),
         editName: document.getElementById('edit-name')
     };
+
+    /* Guard: only run on project page where these elements exist */
+    if (!dom.tableBody) {
+        return;
+    }
 
     function escapeHtml(str) {
         var div = document.createElement('div');
@@ -106,7 +109,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return '<span class="px-2 py-1 rounded-full text-xs font-medium ' + cls + '">' + escapeHtml(trend) + '</span>';
     }
 
-    /* Row renderer callback for TablePaginator */
     function renderKeywordRow(kw, globalIndex) {
         var html = '<tr class="border-b hover:bg-gray-50" data-id="' + kw.k_id + '">';
         html += '<td class="py-3 px-4 text-gray-500">' + (globalIndex + 1) + '</td>';
@@ -125,11 +127,10 @@ document.addEventListener('DOMContentLoaded', function () {
         return html;
     }
 
-    /* Initialise the paginator */
     var paginator = new TablePaginator({
         tableBody: dom.tableBody,
         paginationContainer: dom.paginationContainer,
-        pageSize: state.pageSize,
+        pageSize: 10,
         renderRow: renderKeywordRow
     });
 
@@ -140,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function loadKeywords() {
         try {
-            var result = await apiCall('ajax/get-keywords.php');;
+            var result = await apiCall('ajax/get-keywords.php');
             state.allKeywords = result.data;
             renderTable();
         } catch (err) {
@@ -226,6 +227,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         var formData = new FormData();
         formData.append('csrf_token', getCsrfToken());
+        formData.append('project_id', window.__PROJECT_ID__ || '');
 
         try {
             await apiCall('ajax/refresh-positions.php', {
