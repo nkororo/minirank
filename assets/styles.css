@@ -666,10 +666,11 @@ a {
     box-shadow: var(--shadow-lg);
     z-index: 50;
     overflow: visible;
+    display: none;
 }
 
-.dropdown-menu.is-hidden {
-    display: none;
+.dropdown-menu.show {
+    display: block;
 }
 
 .dropdown-item {

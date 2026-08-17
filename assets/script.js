@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', function () {
         html += '<td class="col-actions">';
         html += '<div class="dropdown">';
         html += '<button class="dropdown-toggle">Actions &#9662;</button>';
-        html += '<div class="dropdown-menu is-hidden">';
+        html += '<div class="dropdown-menu">';
         html += '<a href="index.php?op=positions&id=' + kw.k_id + '" class="dropdown-item">Details</a>';
         html += '<button class="edit-btn dropdown-item" data-id="' + kw.k_id + '" data-name="' + escapeHtml(kw.name) + '">Edit</button>';
         html += '<button class="delete-btn dropdown-item dropdown-item--danger" data-id="' + kw.k_id + '">Delete</button>';
@@ -267,9 +267,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function closeAllDropdowns() {
-        var menus = document.querySelectorAll('.dropdown-menu');
+        var menus = document.querySelectorAll('.dropdown-menu.show');
         for (var i = 0; i < menus.length; i++) {
-            menus[i].classList.add('is-hidden');
+            menus[i].classList.remove('show');
         }
     }
 
@@ -311,8 +311,11 @@ document.addEventListener('DOMContentLoaded', function () {
         var toggleBtn = e.target.closest('.dropdown-toggle');
         if (toggleBtn) {
             var menu = toggleBtn.nextElementSibling;
+            var isOpen = menu.classList.contains('show');
             closeAllDropdowns();
-            menu.classList.toggle('is-hidden');
+            if (!isOpen) {
+                menu.classList.add('show');
+            }
             return;
         }
 
@@ -332,6 +335,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.addEventListener('click', function (e) {
         if (!e.target.closest('.dropdown')) {
+            closeAllDropdowns();
+        }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
             closeAllDropdowns();
         }
     });
