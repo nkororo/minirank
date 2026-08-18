@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * Application constants.
+ *
+ * All environment-independent constants are defined here using uppercase names.
+ * Environment-specific values (secrets, paths) should be defined in .env.
+ */
+
 define('APP_NAME', 'MiniRank');
 define('APP_URL', 'http://localhost:8000');
 

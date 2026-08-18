@@ -1,7 +1,16 @@
 <?php
 
+/**
+ * Front controller and application router.
+ *
+ * Routes incoming requests to the appropriate page controller based on the
+ * 'op' query parameter. Falls back to the Dashboard for unknown operations.
+ * Each controller class renders its own page content via displayPage().
+ */
+
 require_once __DIR__ . '/init.php';
 
+/* Redirect bare POST requests (e.g. direct form submits) to the dashboard */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_GET['op'])) {
     header('Location: ' . APP_URL . '/index.php?op=dashboard');
     exit;
@@ -10,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_GET['op'])) {
 $op = $_GET['op'] ?? 'dashboard';
 $page = null;
 
+/* Map operation codes to their corresponding controller classes */
 switch ($op) {
     case 'login':
     case 'register':

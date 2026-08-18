@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Sanitize a string value for safe HTML output.
+ *
+ * Wraps htmlspecialchars() to prevent XSS when rendering dynamic user content.
+ *
+ * @param string $value The raw string to escape.
+ * @return string The escaped string safe for HTML context.
+ */
 function sanitize(string $value): string
 {
     return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
@@ -8,6 +16,9 @@ function sanitize(string $value): string
 /**
  * Format a date string from YYYY-MM-DD to "DD Month YYYY".
  * Handles both DATE and DATETIME inputs.
+ *
+ * @param string $date A date string in Y-m-d or Y-m-d H:i:s format.
+ * @return string The formatted date, or the original string on failure.
  */
 function formatDate(string $date): string
 {
@@ -18,12 +29,26 @@ function formatDate(string $date): string
     return date('d F Y', $timestamp);
 }
 
+/**
+ * Check if the given operation code is publicly accessible without authentication.
+ *
+ * @param string $op The operation code to check.
+ * @return bool True if the operation is public, false otherwise.
+ */
 function isPublicOp(string $op): bool
 {
     global $PUBLIC_OPS;
     return in_array($op, $PUBLIC_OPS, true);
 }
 
+/**
+ * Generate or retrieve the CSRF token for the current session.
+ *
+ * Creates a cryptographically secure random token on first call, then
+ * returns the cached value for subsequent uses within the same session.
+ *
+ * @return string The CSRF token string.
+ */
 function generateCsrfToken(): string
 {
     if (empty($_SESSION['csrf_token'])) {
@@ -32,6 +57,15 @@ function generateCsrfToken(): string
     return $_SESSION['csrf_token'];
 }
 
+/**
+ * Send a JSON response and terminate execution.
+ *
+ * Sets the HTTP status code, Content-Type header, encodes the data
+ * as JSON, and calls exit to halt further processing.
+ *
+ * @param array $data       The response payload to encode as JSON.
+ * @param int   $statusCode HTTP status code (default 200).
+ */
 function jsonResponse(array $data, int $statusCode = 200): void
 {
     http_response_code($statusCode);
@@ -40,6 +74,15 @@ function jsonResponse(array $data, int $statusCode = 200): void
     exit;
 }
 
+/**
+ * Get keywords with positions for a given project.
+ *
+ * Retrieves each keyword along with its latest position and the position from
+ * 7 days ago (for trend calculation). Results are ordered by most recently updated.
+ *
+ * @param int $projectId The project to fetch keywords for.
+ * @return array Array of keyword rows with 'current_position', 'previous_position', and 'trend'.
+ */
 function getKeywordsWithPositions(int $projectId): array
 {
     global $db;
@@ -177,6 +220,9 @@ function generatePositionHistory(int $projectId): array
  * - total_keywords: exact count of keywords
  * - top_3: up to 3 keywords with best (lowest) position > 0
  * - best_trend_7d: keyword with best 7-day average rank, plus its avg score
+ *
+ * @param int $projectId The project to compute statistics for.
+ * @return array{total_keywords: int, top_3: array, best_trend_7d: ?array}
  */
 function getProjectKeywordStats(int $projectId): array
 {

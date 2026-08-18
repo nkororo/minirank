@@ -1,7 +1,19 @@
 <?php
 
+/**
+ * Project management controller.
+ *
+ * Handles viewing, adding, archiving, and deleting projects.
+ * The view action renders the project keywords dashboard with
+ * statistics, search, filtering, sorting, and keyword modals.
+ */
 class Project
 {
+    /**
+     * Route to the appropriate project action based on the 'op' parameter.
+     *
+     * @return string HTML content for the requested project page.
+     */
     public function displayPage(): string
     {
         $op = $_GET['op'] ?? 'project';

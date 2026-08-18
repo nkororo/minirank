@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Bootstrap and configuration loader.
+ *
+ * Loads environment variables from .env, initializes constants via parameters.php,
+ * registers global functions, sets up the database connection, and enforces
+ * authentication for protected operations.
+ */
+
 session_start();
 
 require_once __DIR__ . '/parameters.php';

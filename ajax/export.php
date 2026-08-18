@@ -1,9 +1,13 @@
 <?php
 
-require_once __DIR__ . '/../init.php';
+/**
+ * AJAX Handler: Export Keywords to CSV
+ *
+ * Generates a CSV file download containing all keywords with their
+ * current positions and trend indicators for the authenticated user.
+ */
 
-$userId = $_SESSION['user_id'];
-$keywords = getKeywordsWithPositions($userId);
+require_once __DIR__ . '/../init.php';
 
 header('Content-Type: text/csv; charset=utf-8');
 header('Content-Disposition: attachment; filename=keywords_export_' . date('Y-m-d') . '.csv');

@@ -1,3 +1,4 @@
+<!-- Page header: HTML document head, navbar, and main content wrapper opening tag. -->
 <!DOCTYPE html>
 <html lang="en">
 <head>

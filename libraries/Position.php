@@ -1,7 +1,18 @@
 <?php
 
+/**
+ * Position details controller.
+ *
+ * Renders the keyword detail page with ranking history chart,
+ * position history table, and adoption metrics.
+ */
 class Position
 {
+    /**
+     * Route to the appropriate position action based on the 'op' parameter.
+     *
+     * @return string HTML content for the requested position page.
+     */
     public function displayPage(): string
     {
         $op = $_GET['op'] ?? '';
@@ -13,6 +24,11 @@ class Position
         return $this->details();
     }
 
+    /**
+     * Render the keyword detail page with chart and position history table.
+     *
+     * @return string HTML for the position details page.
+     */
     private function details(): string
     {
         global $db;
@@ -284,6 +300,12 @@ class Position
         </script>';
     }
 
+    /**
+     * Generate a position badge HTML based on rank tier.
+     *
+     * @param int $position The keyword position (1-100).
+     * @return string HTML span element with the appropriate badge class.
+     */
     private function getPositionBadge(int $position): string
     {
         if ($position <= 3) {
@@ -299,6 +321,13 @@ class Position
         return '<span class="' . $class . '">#' . $position . '</span>';
     }
 
+    /**
+     * Delete a position record and redirect back to the positions page.
+     *
+     * Verifies ownership via the keyword's project before deletion.
+     *
+     * @return string HTML (unreachable; always redirects).
+     */
     private function delete(): string
     {
         global $db;

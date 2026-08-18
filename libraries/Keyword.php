@@ -1,7 +1,18 @@
 <?php
 
+/**
+ * Keyword management controller.
+ *
+ * Handles listing, adding, editing, and deleting keywords
+ * within a project. All actions require a valid project_id in session.
+ */
 class Keyword
 {
+    /**
+     * Route to the appropriate keyword action based on the 'op' parameter.
+     *
+     * @return string HTML content for the requested keyword page.
+     */
     public function displayPage(): string
     {
         $op = $_GET['op'] ?? 'keywords';
@@ -18,6 +29,11 @@ class Keyword
         }
     }
 
+    /**
+     * Render the keywords list page for the current project.
+     *
+     * @return string HTML table of keywords.
+     */
     private function list(): string
     {
         global $db;
@@ -65,6 +81,11 @@ class Keyword
         </div>';
     }
 
+    /**
+     * Handle the add-keyword form (display form or process submission).
+     *
+     * @return string HTML for the add keyword form.
+     */
     private function add(): string
     {
         global $db;
@@ -104,6 +125,11 @@ class Keyword
         </div>';
     }
 
+    /**
+     * Handle the edit-keyword form (display form or process submission).
+     *
+     * @return string HTML for the edit keyword form.
+     */
     private function edit(): string
     {
         global $db;
@@ -152,6 +178,11 @@ class Keyword
         </div>';
     }
 
+    /**
+     * Delete a keyword and redirect back to the keywords list.
+     *
+     * @return string HTML (unreachable; always redirects).
+     */
     private function delete(): string
     {
         global $db;

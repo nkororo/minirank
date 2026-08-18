@@ -1,10 +1,13 @@
 <?php
 
-require_once __DIR__ . '/../init.php';
+/**
+ * AJAX Handler: Get Project Statistics
+ *
+ * Returns keyword statistics for the currently selected project,
+ * including total count, top 3 keywords, and best 7-day trend.
+ */
 
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    jsonResponse(['success' => false, 'message' => 'Method not allowed'], 405);
-}
+require_once __DIR__ . '/../init.php';
 
 $projectId = $_SESSION['project_id'] ?? 0;
 if ($projectId <= 0) {

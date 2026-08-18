@@ -1,7 +1,18 @@
 <?php
 
+/**
+ * Authentication controller.
+ *
+ * Handles user login, registration, and logout operations.
+ * Manages session-based authentication with CSRF protection.
+ */
 class Auth
 {
+    /**
+     * Display the appropriate auth page or handle form submission.
+     *
+     * @return string HTML content for the auth page.
+     */
     public function displayPage(): string
     {
         global $db;
@@ -19,6 +30,11 @@ class Auth
         return $op === 'register' ? $this->registerForm() : $this->loginForm();
     }
 
+    /**
+     * Render the login form.
+     *
+     * @return string HTML for the login form page.
+     */
     private function loginForm(): string
     {
         $error = $_SESSION['auth_error'] ?? '';
@@ -52,6 +68,11 @@ class Auth
         </div>';
     }
 
+    /**
+     * Render the registration form.
+     *
+     * @return string HTML for the registration form page.
+     */
     private function registerForm(): string
     {
         $error = $_SESSION['auth_error'] ?? '';
@@ -90,6 +111,13 @@ class Auth
         </div>';
     }
 
+    /**
+     * Process the login form submission.
+     *
+     * Validates CSRF token, credentials, and starts the session on success.
+     *
+     * @return string HTML (unreachable; redirects on success/failure).
+     */
     private function login(): string
     {
         global $db;
@@ -125,6 +153,13 @@ class Auth
         exit;
     }
 
+    /**
+     * Process the registration form submission.
+     *
+     * Validates input, hashes the password, and creates a new user account.
+     *
+     * @return string HTML (unreachable; redirects on success/failure).
+     */
     private function register(): string
     {
         global $db;
@@ -174,6 +209,11 @@ class Auth
         exit;
     }
 
+    /**
+     * Destroy the current session and redirect to the login page.
+     *
+     * @return string HTML (unreachable; always redirects).
+     */
     private function logout(): string
     {
         session_unset();

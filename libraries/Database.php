@@ -1,9 +1,19 @@
 <?php
 
+/**
+ * Database abstraction layer.
+ *
+ * Provides a thin wrapper around PDO with convenience methods for
+ * querying, inserting, updating, and deleting rows. Handles schema
+ * initialization and migration for SQLite databases.
+ */
 class Database
 {
     private PDO $pdo;
 
+    /**
+     * Connect to the database and run schema migration if needed.
+     */
     public function __construct()
     {
         $isNewDb = !file_exists(DB_PATH);
@@ -27,6 +37,9 @@ class Database
         }
     }
 
+    /**
+     * Create all tables and indexes from schema.sql on a fresh database.
+     */
     private function initSchema(): void
     {
         $schema = file_get_contents(__DIR__ . '/../schema.sql');
@@ -153,11 +166,23 @@ class Database
         $this->pdo->exec("CREATE UNIQUE INDEX `$indexName` ON `$table` ($columnList)");
     }
 
+    /**
+     * Get the underlying PDO instance for advanced operations (transactions, etc.).
+     *
+     * @return PDO The raw PDO connection.
+     */
     public function getPdo(): PDO
     {
         return $this->pdo;
     }
 
+    /**
+     * Execute a prepared SQL statement and return the PDOStatement.
+     *
+     * @param string $sql    The SQL query with named or positional placeholders.
+     * @param array  $params Bound parameter values.
+     * @return PDOStatement The executed statement.
+     */
     public function query(string $sql, array $params = []): PDOStatement
     {
         $stmt = $this->pdo->prepare($sql);
@@ -165,6 +190,13 @@ class Database
         return $stmt;
     }
 
+    /**
+     * Fetch a single row from the database.
+     *
+     * @param string $sql    The SQL query.
+     * @param array  $params Bound parameter values.
+     * @return ?array The first row as an associative array, or null if not found.
+     */
     public function fetchOne(string $sql, array $params = []): ?array
     {
         $stmt = $this->query($sql, $params);
@@ -172,11 +204,25 @@ class Database
         return $result ?: null;
     }
 
+    /**
+     * Fetch all rows matching the given query.
+     *
+     * @param string $sql    The SQL query.
+     * @param array  $params Bound parameter values.
+     * @return array Array of associative arrays.
+     */
     public function fetchAll(string $sql, array $params = []): array
     {
         return $this->query($sql, $params)->fetchAll();
     }
 
+    /**
+     * Insert a row into the specified table.
+     *
+     * @param string $table The target table name.
+     * @param array  $data  Column-value pairs to insert.
+     * @return int The last insert ID (auto-increment primary key).
+     */
     public function insert(string $table, array $data): int
     {
         $columns = implode(', ', array_keys($data));
@@ -186,6 +232,15 @@ class Database
         return (int) $this->pdo->lastInsertId();
     }
 
+    /**
+     * Update rows matching the WHERE clause.
+     *
+     * @param string $table       The target table name.
+     * @param array  $data        Column-value pairs to set.
+     * @param string $where       The WHERE clause with placeholders.
+     * @param array  $whereParams Bound parameter values for the WHERE clause.
+     * @return int Number of affected rows.
+     */
     public function update(string $table, array $data, string $where, array $whereParams = []): int
     {
         $set = implode(', ', array_map(fn($col) => "`$col` = ?", array_keys($data)));
@@ -194,6 +249,14 @@ class Database
         return $stmt->rowCount();
     }
 
+    /**
+     * Delete rows matching the WHERE clause.
+     *
+     * @param string $table  The target table name.
+     * @param string $where  The WHERE clause with placeholders.
+     * @param array  $params Bound parameter values for the WHERE clause.
+     * @return int Number of deleted rows.
+     */
     public function delete(string $table, string $where, array $params = []): int
     {
         $sql = "DELETE FROM `$table` WHERE $where";

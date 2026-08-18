@@ -1,3 +1,6 @@
+-- MiniRank Database Schema
+-- Defines tables for users, projects, keywords, and position history.
+
 CREATE TABLE IF NOT EXISTS users (
     u_id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT NOT NULL UNIQUE,

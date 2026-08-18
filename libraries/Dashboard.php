@@ -1,7 +1,21 @@
 <?php
 
+/**
+ * Dashboard controller.
+ *
+ * Renders the main projects overview page with statistics cards,
+ * filter tabs, and the paginated projects table.
+ */
 class Dashboard
 {
+    /**
+     * Render the projects dashboard page.
+     *
+     * Fetches all projects for the authenticated user with keyword counts,
+     * computes summary statistics, and returns the full HTML page content.
+     *
+     * @return string HTML content for the dashboard page.
+     */
     public function displayPage(): string
     {
         global $db;

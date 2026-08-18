@@ -1,3 +1,10 @@
+/**
+ * Projects Dashboard Script.
+ *
+ * Manages the projects list UI including status filtering, stat card
+ * updates, project creation via AJAX modal, archive/restore toggles,
+ * and project deletion. Uses the TablePaginator component for pagination.
+ */
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 

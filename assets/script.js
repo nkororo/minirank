@@ -1,3 +1,10 @@
+/**
+ * Project Keywords Page Script.
+ *
+ * Manages the keyword list UI including sorting, filtering, search,
+ * CRUD operations via AJAX modals, and stat card updates. Uses the
+ * TablePaginator component for client-side pagination.
+ */
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
