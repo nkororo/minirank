@@ -18,9 +18,12 @@ if (!(isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $_P
 }
 
 try {
-    $projectId = (int) ($_POST['project_id'] ?? 0);
+    $projectId = (int) ($_SESSION['project_id'] ?? 0);
     if ($projectId <= 0) {
-        jsonResponse(['success' => false, 'message' => 'Invalid project ID'], 400);
+        jsonResponse([
+            'success' => false,
+            'message' => 'No project selected. Navigate to a project first.',
+        ], 400);
     }
 
     $userId = $_SESSION['user_id'] ?? 0;
@@ -33,11 +36,17 @@ try {
     );
 
     if (!$project) {
-        jsonResponse(['success' => false, 'message' => 'Project not found'], 404);
+        jsonResponse([
+            'success' => false,
+            'message' => 'Project not found or access denied.',
+        ], 404);
     }
 
     if ($project['status'] === 'archived') {
-        jsonResponse(['success' => false, 'message' => 'Cannot refresh positions for an archived project'], 400);
+        jsonResponse([
+            'success' => false,
+            'message' => 'Cannot refresh positions for an archived project. Restore it first.',
+        ], 400);
     }
 
     /* Fetch existing keywords for this project */
@@ -47,7 +56,10 @@ try {
     );
 
     if (empty($keywords)) {
-        jsonResponse(['success' => false, 'message' => 'No keywords found. Add keywords first.'], 400);
+        jsonResponse([
+            'success' => false,
+            'message' => 'No keywords found for this project. Add keywords first.',
+        ], 400);
     }
 
     $keywordsCount = count($keywords);

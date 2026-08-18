@@ -316,7 +316,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    async function refreshPositions() {
+    async function refreshPositions(e) {
+        e.preventDefault();
         dom.btnRefresh.disabled = true;
         dom.btnRefresh.textContent = 'Refreshing...';
 
@@ -369,7 +370,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    async function generateHistory() {
+    async function generateHistory(e) {
+        e.preventDefault();
         dom.btnGenerateHistory.disabled = true;
         dom.btnGenerateHistory.textContent = 'Generating...';
 

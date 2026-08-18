@@ -13,6 +13,7 @@
  */
 
 require_once __DIR__ . '/../init.php';
+require_once __DIR__ . '/../libraries/seeder.php';
 
 /* Resolve project_id from CLI argument or find/create one */
 $projectId = (int) ($argv[1] ?? 0);
@@ -64,41 +65,14 @@ if (!$project) {
 
 echo "Seeding project: {$project['name']} (ID: {$projectId})\n";
 
-/* Demo keywords to insert if none exist */
-$demoKeywords = [
-    'seo tools',
-    'rank tracker',
-    'best coffee machine',
-    'online shop',
-    'auto repair',
-    'digital marketing',
-    'web hosting',
-    'keyword research',
-    'analytics dashboard',
-    'local seo',
-];
+/* Execute shared seeder logic */
+$result = seedProjectHistory($projectId);
 
-/* Check existing keywords for this project */
-$existing = $db->fetchAll(
-    'SELECT `k_id` FROM `keywords` WHERE `project_id` = ?',
-    [$projectId]
-);
-
-if (empty($existing)) {
-    /* Insert demo keywords */
-    foreach ($demoKeywords as $name) {
-        $db->insert('keywords', [
-            'project_id' => $projectId,
-            'name' => $name,
-        ]);
-    }
-    echo "Inserted " . count($demoKeywords) . " demo keywords.\n";
+if ($result['keywords_inserted'] > 0) {
+    echo "Inserted {$result['keywords_inserted']} demo keywords.\n";
 } else {
-    echo "Project already has " . count($existing) . " keywords, skipping keyword insertion.\n";
+    echo "Project already has keywords, skipping keyword insertion.\n";
 }
-
-/* Generate 30-day position history */
-$result = generatePositionHistory($projectId);
 
 echo "Generated {$result['records_generated']} position records for {$result['keywords_count']} keywords.\n";
 echo "Seeding complete.\n";

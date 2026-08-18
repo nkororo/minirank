@@ -4,10 +4,11 @@
  * AJAX Handler: Generate 30-Day Position History
  *
  * Seeds or re-seeds 30 days of historical position rankings for all keywords
- * in the current project. Uses the shared generatePositionHistory() function.
+ * in the current project. Uses the shared seedProjectHistory() function.
  */
 
 require_once __DIR__ . '/../init.php';
+require_once __DIR__ . '/../libraries/seeder.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonResponse(['success' => false, 'message' => 'Method not allowed'], 405);
@@ -18,9 +19,12 @@ if (!(isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $_P
 }
 
 try {
-    $projectId = (int) ($_POST['project_id'] ?? 0);
+    $projectId = (int) ($_SESSION['project_id'] ?? 0);
     if ($projectId <= 0) {
-        jsonResponse(['success' => false, 'message' => 'Invalid project ID'], 400);
+        jsonResponse([
+            'success' => false,
+            'message' => 'No project selected. Navigate to a project first.',
+        ], 400);
     }
 
     $userId = $_SESSION['user_id'] ?? 0;
@@ -32,18 +36,27 @@ try {
     );
 
     if (!$project) {
-        jsonResponse(['success' => false, 'message' => 'Project not found'], 404);
+        jsonResponse([
+            'success' => false,
+            'message' => 'Project not found or access denied.',
+        ], 404);
     }
 
     if ($project['status'] === 'archived') {
-        jsonResponse(['success' => false, 'message' => 'Cannot generate history for an archived project'], 400);
+        jsonResponse([
+            'success' => false,
+            'message' => 'Cannot generate history for an archived project. Restore it first.',
+        ], 400);
     }
 
-    /* Generate 30-day position history */
-    $historyResult = generatePositionHistory($projectId);
+    /* Execute shared seeder logic */
+    $historyResult = seedProjectHistory($projectId);
 
     if ($historyResult['keywords_count'] === 0) {
-        jsonResponse(['success' => false, 'message' => 'No keywords found. Add keywords first.'], 400);
+        jsonResponse([
+            'success' => false,
+            'message' => 'No keywords found for this project. Add keywords before generating history.',
+        ], 400);
     }
 
     /* Fetch updated keywords with positions, trends, and project stats */

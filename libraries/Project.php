@@ -103,9 +103,9 @@ class Project
                         <h1 class="page-title">' . sanitize($project['name']) . $domainDisplay . ' ' . $statusBadge . '</h1>
                     </div>
                     <div class="btn-group">
-                        <button id="btn-refresh" ' . $refreshBtnDisabled . '
+                        <button type="button" id="btn-refresh" ' . $refreshBtnDisabled . '
                             class="' . $refreshBtnClass . '">Refresh Positions</button>
-                        <button id="btn-generate-history" ' . $refreshBtnDisabled . '
+                        <button type="button" id="btn-generate-history" ' . $refreshBtnDisabled . '
                             class="' . $refreshBtnClass . '">Generate History</button>
                     </div>
                 </div>
