@@ -16,10 +16,21 @@ if ($name === '') {
 }
 
 global $db;
+$projectId = (int) ($_SESSION['project_id'] ?? 0);
+
 $kId = $db->insert('keywords', [
-    'project_id' => $_SESSION['project_id'] ?? 0,
+    'project_id' => $projectId,
     'name' => $name,
 ]);
+
+/* Insert today's initial position for the new keyword */
+$position = random_int(POSITION_MIN, POSITION_MAX);
+$today = date('Y-m-d');
+$db->getPdo()->prepare(
+    'INSERT INTO `positions` (`keyword_id`, `position`, `date`)
+     VALUES (?, ?, ?)
+     ON CONFLICT(`keyword_id`, `date`) DO UPDATE SET `position` = excluded.`position`'
+)->execute([$kId, $position, $today]);
 
 jsonResponse([
     'success' => true,
@@ -27,7 +38,8 @@ jsonResponse([
         'k_id' => $kId,
         'name' => $name,
         'updated_at' => date('Y-m-d H:i:s'),
-        'current_position' => 0,
+        'current_position' => $position,
+        'previous_position' => null,
         'trend' => 'stable',
     ],
 ]);
