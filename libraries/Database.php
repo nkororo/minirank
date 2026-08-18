@@ -16,6 +16,9 @@ class Database
             PDO::ATTR_EMULATE_PREPARES   => false,
         ]);
 
+        /* Enable foreign key enforcement (SQLite has it off by default) */
+        $this->pdo->exec('PRAGMA foreign_keys = ON');
+
 
         if ($isNewDb) {
             $this->initSchema();

@@ -191,13 +191,11 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('csrf_token', getCsrfToken());
 
         try {
-            await apiCall('ajax/delete-project.php', {
+            var result = await apiCall('ajax/delete-project.php', {
                 method: 'POST',
                 body: formData
             });
-            state.allProjects = state.allProjects.filter(function (p) {
-                return p.project_id !== projectId;
-            });
+            state.allProjects = result.data.projects;
             renderTable();
             updateProjectsStats();
         } catch (err) {

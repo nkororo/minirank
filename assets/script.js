@@ -263,15 +263,48 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('csrf_token', getCsrfToken());
 
         try {
-            await apiCall('ajax/delete-keyword.php', {
+            var result = await apiCall('ajax/delete-keyword.php', {
                 method: 'POST',
                 body: formData
             });
-            state.allKeywords = state.allKeywords.filter(function (kw) {
-                return kw.k_id !== id;
-            });
+
+            /* Update keywords table from returned data */
+            state.allKeywords = result.data.keywords;
             renderTable();
-            updateProjectStatsCards();
+
+            /* Update stat cards from returned server-computed data */
+            var stats = result.data.stats;
+            var pmTop = document.getElementById('pm-top');
+            var pmTrend7d = document.getElementById('pm-trend7d');
+
+            /* Update Top 3 card */
+            if (pmTop && stats.top_3) {
+                if (stats.top_3.length > 0) {
+                    var topParts = [];
+                    for (var i = 0; i < stats.top_3.length; i++) {
+                        topParts.push(escapeHtml(stats.top_3[i].name) + ' (#' + stats.top_3[i].position + ')');
+                    }
+                    pmTop.textContent = topParts.join(', ');
+                } else {
+                    pmTop.textContent = fallback;
+                }
+            }
+
+            /* Update 7-Day Best Trend card */
+            if (pmTrend7d) {
+                if (stats.best_trend_7d) {
+                    pmTrend7d.textContent = escapeHtml(stats.best_trend_7d.name)
+                        + ' (avg. #' + stats.best_trend_7d.avg_position + ')';
+                } else {
+                    pmTrend7d.textContent = fallback;
+                }
+            }
+
+            /* Update Total Keywords card */
+            var pmTotal = document.getElementById('pm-total');
+            if (pmTotal) {
+                pmTotal.textContent = state.allKeywords.length;
+            }
         } catch (err) {
             var row = dom.tableBody.querySelector('tr[data-id="' + id + '"]');
             if (row) {

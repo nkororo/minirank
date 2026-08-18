@@ -306,8 +306,13 @@ class Position
         $pid = (int) ($_GET['id'] ?? 0);
         $kid = (int) ($_GET['kwid'] ?? 0);
 
+        /* Verify keyword belongs to a project owned by this user before deleting */
         $db->query(
-            'DELETE FROM `positions` WHERE `p_id` = ? AND `keyword_id` IN (SELECT `k_id` FROM `keywords` WHERE `user_id` = ?)',
+            'DELETE FROM `positions` WHERE `p_id` = ? AND `keyword_id` IN (
+                SELECT k.`k_id` FROM `keywords` k
+                INNER JOIN `projects` p ON k.`project_id` = p.`project_id`
+                WHERE p.`user_id` = ?
+            )',
             [$pid, $userId]
         );
 

@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS positions (
     position INTEGER CHECK(position BETWEEN 1 AND 100),
     date DATE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(`keyword_id`, `date`)
+    UNIQUE(`keyword_id`, `date`),
+    FOREIGN KEY (`keyword_id`) REFERENCES keywords(`k_id`) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS `idx_projects_user_id` ON `projects`(`user_id`);
