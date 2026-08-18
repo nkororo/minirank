@@ -474,7 +474,7 @@ document.addEventListener('DOMContentLoaded', function () {
     dom.btnGenerateHistory.addEventListener('click', generateHistory);
 
     dom.btnExport.addEventListener('click', function () {
-        window.location.href = 'ajax/export.php';
+        window.location.href = 'ajax/export.php?project_id=' + window.__PROJECT_ID__;
     });
 
     dom.searchInput.addEventListener('input', function () {
