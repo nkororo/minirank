@@ -12,8 +12,14 @@
  * If no projects exist, a default project is created for user_id 1.
  */
 
+/* Bypass init.php session/auth check in CLI by using a public op */
+$_GET['op'] = 'login';
+
 require_once __DIR__ . '/../init.php';
 require_once __DIR__ . '/../libraries/seeder.php';
+
+/* Avoid SQLite 'database is locked' when web requests run concurrently */
+$db->getPdo()->exec('PRAGMA busy_timeout = 5000');
 
 /* Resolve project_id from CLI argument or find/create one */
 $projectId = (int) ($argv[1] ?? 0);

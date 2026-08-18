@@ -344,8 +344,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
             /* Update stat cards from returned server-computed data */
             var stats = result.data.stats;
+            var pmTotal = document.getElementById('pm-total');
             var pmTop = document.getElementById('pm-top');
             var pmTrend7d = document.getElementById('pm-trend7d');
+
+            /* Update Total Keywords card */
+            if (pmTotal) {
+                pmTotal.textContent = stats.total_keywords;
+            }
 
             /* Update Top 3 card */
             if (pmTop && stats.top_3) {
@@ -398,8 +404,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
             /* Update stat cards from returned server-computed data */
             var stats = result.data.stats;
+            var pmTotal = document.getElementById('pm-total');
             var pmTop = document.getElementById('pm-top');
             var pmTrend7d = document.getElementById('pm-trend7d');
+
+            /* Update Total Keywords card */
+            if (pmTotal) {
+                pmTotal.textContent = stats.total_keywords;
+            }
 
             /* Update Top 3 card */
             if (pmTop && stats.top_3) {
