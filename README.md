@@ -44,22 +44,7 @@ Open `http://localhost:8000` in your web browser. Email: `admin@minirank.local`
 ```text
 MiniRank/
 ├── ajax/                   # Asynchronous API handlers
-│   ├── add-keyword.php
-│   ├── add-project.php
-│   ├── archive-project.php
-│   ├── delete-keyword.php
-│   ├── delete-project.php
-│   ├── edit-keyword.php
-│   ├── export.php
-│   ├── generate-history.php
-│   ├── get-keywords.php
-│   ├── get-project-stats.php
-│   └── refresh-positions.php
 ├── assets/                 # Frontend client assets
-│   ├── dashboard.js
-│   ├── script.js
-│   ├── styles.css
-│   └── TablePaginator.js
 ├── includes/               # Shared templates (header, footer)
 ├── libraries/              # Core PHP modules (Auth, Dashboard, Database, Keyword, Position, Project, seeder)
 ├── scripts/
