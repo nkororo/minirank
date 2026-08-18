@@ -105,6 +105,16 @@ class Database
 
         // Add updated_at column to keywords if missing
         $this->addColumnIfNotExists('keywords', 'updated_at', 'DATETIME DEFAULT CURRENT_TIMESTAMP');
+
+        // Deduplicate positions: keep only the latest row per (keyword_id, date)
+        $this->pdo->exec('
+            DELETE FROM `positions` WHERE `p_id` NOT IN (
+                SELECT MAX(`p_id`) FROM `positions` GROUP BY `keyword_id`, `date`
+            )
+        ');
+
+        // Add UNIQUE constraint on (keyword_id, date) if missing
+        $this->addUniqueIndexIfNotExists('positions', 'idx_positions_keyword_date', ['keyword_id', 'date']);
     }
 
     /**
@@ -120,6 +130,24 @@ class Database
             }
         }
         $this->pdo->exec("ALTER TABLE `$table` ADD COLUMN `$column` $definition");
+    }
+
+    /**
+     * Add a UNIQUE index on the given columns if it does not already exist.
+     */
+    private function addUniqueIndexIfNotExists(string $table, string $indexName, array $columns): void
+    {
+        $quotedColumns = array_map(fn($col) => "`$col`", $columns);
+        $columnList = implode(', ', $quotedColumns);
+
+        // Check if the index already exists
+        $stmt = $this->pdo->prepare('SELECT `name` FROM `sqlite_master` WHERE `type` = ? AND `name` = ?');
+        $stmt->execute(['index', $indexName]);
+        if ($stmt->fetch()) {
+            return;
+        }
+
+        $this->pdo->exec("CREATE UNIQUE INDEX `$indexName` ON `$table` ($columnList)");
     }
 
     public function getPdo(): PDO

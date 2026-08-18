@@ -1,10 +1,10 @@
 <?php
 
 /**
- * AJAX Handler: Refresh Today's Positions
+ * AJAX Handler: Generate 30-Day Position History
  *
- * For each existing keyword in the project, generates a single new position
- * for today's date. Uses upsert to enforce uniqueness on (keyword_id, date).
+ * Seeds or re-seeds 30 days of historical position rankings for all keywords
+ * in the current project. Uses the shared generatePositionHistory() function.
  */
 
 require_once __DIR__ . '/../init.php';
@@ -24,7 +24,6 @@ try {
     }
 
     $userId = $_SESSION['user_id'] ?? 0;
-    $pdo = $db->getPdo();
 
     /* Verify project ownership */
     $project = $db->fetchOne(
@@ -37,43 +36,15 @@ try {
     }
 
     if ($project['status'] === 'archived') {
-        jsonResponse(['success' => false, 'message' => 'Cannot refresh positions for an archived project'], 400);
+        jsonResponse(['success' => false, 'message' => 'Cannot generate history for an archived project'], 400);
     }
 
-    /* Fetch existing keywords for this project */
-    $keywords = $db->fetchAll(
-        'SELECT `k_id` FROM `keywords` WHERE `project_id` = ?',
-        [$projectId]
-    );
+    /* Generate 30-day position history */
+    $historyResult = generatePositionHistory($projectId);
 
-    if (empty($keywords)) {
+    if ($historyResult['keywords_count'] === 0) {
         jsonResponse(['success' => false, 'message' => 'No keywords found. Add keywords first.'], 400);
     }
-
-    $keywordsCount = count($keywords);
-    $recordsGenerated = 0;
-    $today = date('Y-m-d');
-
-    /* Upsert today's position for each keyword */
-    $insertStmt = $pdo->prepare(
-        'INSERT INTO `positions` (`keyword_id`, `position`, `date`)
-         VALUES (?, ?, ?)
-         ON CONFLICT(`keyword_id`, `date`) DO UPDATE SET `position` = excluded.`position`'
-    );
-
-    $pdo->beginTransaction();
-
-    foreach ($keywords as $kw) {
-        $position = random_int(POSITION_MIN, POSITION_MAX);
-        $insertStmt->execute([
-            $kw['k_id'],
-            $position,
-            $today,
-        ]);
-        $recordsGenerated++;
-    }
-
-    $pdo->commit();
 
     /* Fetch updated keywords with positions, trends, and project stats */
     $keywordsData = getKeywordsWithPositions($projectId);
@@ -81,17 +52,14 @@ try {
 
     jsonResponse([
         'success' => true,
-        'message' => 'Today\'s positions refreshed successfully.',
+        'message' => '30-day history generated successfully.',
         'data'    => [
-            'keywords_count'    => $keywordsCount,
-            'records_generated' => $recordsGenerated,
+            'keywords_count'    => $historyResult['keywords_count'],
+            'records_generated' => $historyResult['records_generated'],
             'keywords'          => $keywordsData,
             'stats'             => $statsData,
         ],
     ]);
 } catch (Throwable $e) {
-    if ($pdo->inTransaction()) {
-        $pdo->rollBack();
-    }
     jsonResponse(['success' => false, 'message' => $e->getMessage()], 500);
 }

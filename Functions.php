@@ -114,6 +114,65 @@ function calculateTrend(?int $current, ?int $sevenDaysAgo): string
 }
 
 /**
+ * Generate 30 days of position history (T-29 to today) for all keywords in a project.
+ * Uses upsert to enforce uniqueness on (keyword_id, date).
+ *
+ * @return array{keywords_count: int, records_generated: int}
+ */
+function generatePositionHistory(int $projectId): array
+{
+    global $db;
+    $pdo = $db->getPdo();
+
+    /* Fetch all keywords for this project */
+    $keywords = $db->fetchAll(
+        'SELECT `k_id` FROM `keywords` WHERE `project_id` = ?',
+        [$projectId]
+    );
+
+    if (empty($keywords)) {
+        return ['keywords_count' => 0, 'records_generated' => 0];
+    }
+
+    $keywordsCount = count($keywords);
+    $recordsGenerated = 0;
+
+    /* Deduplicate existing positions: keep only the latest row per (keyword_id, date) */
+    $pdo->exec('
+        DELETE FROM `positions` WHERE `p_id` NOT IN (
+            SELECT MAX(`p_id`) FROM `positions` GROUP BY `keyword_id`, `date`
+        )
+    ');
+
+    /* Generate 30-day position history inside a single transaction */
+    $pdo->beginTransaction();
+
+    $insertStmt = $pdo->prepare(
+        'INSERT INTO `positions` (`keyword_id`, `position`, `date`)
+         VALUES (?, ?, ?)
+         ON CONFLICT(`keyword_id`, `date`) DO UPDATE SET `position` = excluded.`position`'
+    );
+
+    for ($day = 0; $day < 30; $day++) {
+        $date = date('Y-m-d', strtotime("-{$day} days"));
+
+        foreach ($keywords as $kw) {
+            $position = random_int(POSITION_MIN, POSITION_MAX);
+            $insertStmt->execute([
+                $kw['k_id'],
+                $position,
+                $date,
+            ]);
+            $recordsGenerated++;
+        }
+    }
+
+    $pdo->commit();
+
+    return ['keywords_count' => $keywordsCount, 'records_generated' => $recordsGenerated];
+}
+
+/**
  * Get keyword statistics for a single project:
  * - total_keywords: exact count of keywords
  * - top_3: up to 3 keywords with best (lowest) position > 0

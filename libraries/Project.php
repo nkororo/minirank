@@ -105,6 +105,8 @@ class Project
                     <div class="btn-group">
                         <button id="btn-refresh" ' . $refreshBtnDisabled . '
                             class="' . $refreshBtnClass . '">Refresh Positions</button>
+                        <button id="btn-generate-history" ' . $refreshBtnDisabled . '
+                            class="' . $refreshBtnClass . '">Generate History</button>
                     </div>
                 </div>
             </div>

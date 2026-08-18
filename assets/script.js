@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
         sortSelect: document.getElementById('sort-select'),
         btnAdd: document.getElementById('btn-add'),
         btnRefresh: document.getElementById('btn-refresh'),
+        btnGenerateHistory: document.getElementById('btn-generate-history'),
         btnExport: document.getElementById('btn-export'),
         addModal: document.getElementById('add-modal'),
         addForm: document.getElementById('add-form'),
@@ -291,20 +292,21 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('project_id', window.__PROJECT_ID__ || '');
 
         try {
-            await apiCall('ajax/refresh-positions.php', {
+            var result = await apiCall('ajax/refresh-positions.php', {
                 method: 'POST',
                 body: formData
             });
-            await loadKeywords();
 
-            /* Fetch server-computed stats for accurate 7-day avg */
-            var statsResult = await apiCall('ajax/get-project-stats.php');
-            var stats = statsResult.data;
+            /* Update keywords table from returned data */
+            state.allKeywords = result.data.keywords;
+            renderTable();
 
+            /* Update stat cards from returned server-computed data */
+            var stats = result.data.stats;
             var pmTop = document.getElementById('pm-top');
             var pmTrend7d = document.getElementById('pm-trend7d');
 
-            /* Update Top 3 card from server data */
+            /* Update Top 3 card */
             if (pmTop && stats.top_3) {
                 if (stats.top_3.length > 0) {
                     var topParts = [];
@@ -317,7 +319,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
 
-            /* Update 7-Day Best Trend card from server data */
+            /* Update 7-Day Best Trend card */
             if (pmTrend7d) {
                 if (stats.best_trend_7d) {
                     pmTrend7d.textContent = escapeHtml(stats.best_trend_7d.name)
@@ -331,6 +333,59 @@ document.addEventListener('DOMContentLoaded', function () {
         } finally {
             dom.btnRefresh.disabled = false;
             dom.btnRefresh.textContent = 'Refresh Positions';
+        }
+    }
+
+    async function generateHistory() {
+        dom.btnGenerateHistory.disabled = true;
+        dom.btnGenerateHistory.textContent = 'Generating...';
+
+        var formData = new FormData();
+        formData.append('csrf_token', getCsrfToken());
+        formData.append('project_id', window.__PROJECT_ID__ || '');
+
+        try {
+            var result = await apiCall('ajax/generate-history.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            /* Update keywords table from returned data */
+            state.allKeywords = result.data.keywords;
+            renderTable();
+
+            /* Update stat cards from returned server-computed data */
+            var stats = result.data.stats;
+            var pmTop = document.getElementById('pm-top');
+            var pmTrend7d = document.getElementById('pm-trend7d');
+
+            /* Update Top 3 card */
+            if (pmTop && stats.top_3) {
+                if (stats.top_3.length > 0) {
+                    var topParts = [];
+                    for (var i = 0; i < stats.top_3.length; i++) {
+                        topParts.push(escapeHtml(stats.top_3[i].name) + ' (#' + stats.top_3[i].position + ')');
+                    }
+                    pmTop.textContent = topParts.join(', ');
+                } else {
+                    pmTop.textContent = fallback;
+                }
+            }
+
+            /* Update 7-Day Best Trend card */
+            if (pmTrend7d) {
+                if (stats.best_trend_7d) {
+                    pmTrend7d.textContent = escapeHtml(stats.best_trend_7d.name)
+                        + ' (avg. #' + stats.best_trend_7d.avg_position + ')';
+                } else {
+                    pmTrend7d.textContent = fallback;
+                }
+            }
+        } catch (err) {
+            showError(dom.addError, err.message);
+        } finally {
+            dom.btnGenerateHistory.disabled = false;
+            dom.btnGenerateHistory.textContent = 'Generate History';
         }
     }
 
@@ -374,6 +429,7 @@ document.addEventListener('DOMContentLoaded', function () {
     dom.editForm.addEventListener('submit', editKeyword);
 
     dom.btnRefresh.addEventListener('click', refreshPositions);
+    dom.btnGenerateHistory.addEventListener('click', generateHistory);
 
     dom.btnExport.addEventListener('click', function () {
         window.location.href = 'ajax/export.php';
