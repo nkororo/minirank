@@ -49,7 +49,6 @@ MiniRank/
 ├── libraries/              # Core PHP modules (Auth, Dashboard, Database, Keyword, Position, Project, seeder)
 ├── scripts/
 │   └── seed.php            # CLI setup & 30-day history seeder
-├── .env                    # Local environment config
 ├── .gitignore              # Git ignore rules
 ├── AGENTS.md               # Agent guidelines & specification rules
 ├── arrays.php              # Array helper functions
