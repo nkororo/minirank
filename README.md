@@ -53,7 +53,6 @@ MiniRank/
 ├── .gitignore              # Git ignore rules
 ├── AGENTS.md               # Agent guidelines & specification rules
 ├── arrays.php              # Array helper functions
-├── database.sqlite         # SQLite database file
 ├── Functions.php           # Global helper utilities
 ├── index.php               # Auth gateway (Login / Register)
 ├── init.php                # App bootstrapper & session handler
