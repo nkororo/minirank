@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniRank process documentation</title>
+    <style>
+        :root {
+            --bg: #0b0f19;
+            --surface: #151d30;
+            --surface-hover: #1e293b;
+            --border: #23314e;
+            --primary: #38bdf8;
+            --primary-glow: rgba(56, 189, 248, 0.15);
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --success: #34d399;
+            --danger: #f87171;
+            --warning: #fbbf24;
+            --code-bg: #070a13;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.65;
+            padding: 2.5rem 1.25rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.35rem;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            margin-bottom: 1.75rem;
+        }
+
+        /* Sessions box */
+        .session-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .session-box h3 {
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .sessions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 0.75rem 1.25rem;
+        }
+
+        .session-item {
+            font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .session-item span {
+            color: var(--text-muted);
+            display: block;
+            font-size: 0.8rem;
+        }
+
+        .session-item a {
+            color: var(--primary);
+            text-decoration: none;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+
+        .session-item a:hover {
+            text-decoration: underline;
+        }
+
+        /* Sections */
+        section {
+            margin-bottom: 3rem;
+        }
+
+        h2 {
+            font-size: 1.45rem;
+            color: #ffffff;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 0.6rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.55rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.6rem;
+        }
+
+        .badge-success { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+        .badge-danger { background: rgba(248, 113, 113, 0.15); color: var(--danger); }
+        .badge-warning { background: rgba(251, 191, 36, 0.15); color: var(--warning); }
+        .badge-info { background: var(--primary-glow); color: var(--primary); }
+
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+            overflow-x: auto;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.85rem;
+            color: #e2e8f0;
+            margin: 0.75rem 0;
+            white-space: pre-wrap;
+        }
+
+        code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 0.15rem 0.35rem;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+
+        ul, ol {
+            padding-left: 1.4rem;
+            margin-bottom: 0.8rem;
+            color: #cbd5e1;
+        }
+
+        li {
+            margin-bottom: 0.45rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.92rem;
+        }
+
+        th, td {
+            border: 1px solid var(--border);
+            padding: 0.75rem 1rem;
+            text-align: left;
+        }
+
+        th {
+            background-color: rgba(255, 255, 255, 0.03);
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .features-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1rem;
+            margin-top: 0.75rem;
+        }
+
+        .feature-box {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .feature-box h4 {
+            color: var(--primary);
+            font-size: 0.95rem;
+            margin-bottom: 0.4rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <header>
+        <h1>MiniRank development process</h1>
+        <div class="subtitle">Tech: PHP, SQLite, CSS and Vanilla JS</div>
+        
+        <div class="session-box">
+            <h3>OpenCode Shared Sessions Log</h3>
+            <div class="sessions-grid">
+                <div class="session-item">
+                    <span>Database Schema Design:</span>
+                    <a href="https://opncd.ai/share/lIBZMDaF" target="_blank">https://opncd.ai/share/lIBZMDaF</a>
+                </div>
+                <div class="session-item">
+                    <span>Initial Project Structure:</span>
+                    <a href="https://opncd.ai/share/hKjl65I6" target="_blank">https://opncd.ai/share/hKjl65I6</a>
+                </div>
+                <div class="session-item">
+                    <span>Initial Dashboard Implementation:</span>
+                    <a href="https://opncd.ai/share/mevsFQNf" target="_blank">https://opncd.ai/share/mevsFQNf</a>
+                </div>
+                <div class="session-item">
+                    <span>Tailwind to Clean CSS Migration:</span>
+                    <a href="https://opncd.ai/share/IAbabSON" target="_blank">https://opncd.ai/share/IAbabSON</a>
+                </div>
+                <div class="session-item">
+                    <span>Architecture Pivot (User &rarr; Projects &rarr; Keywords):</span>
+                    <a href="https://opncd.ai/share/maGBZErI" target="_blank">https://opncd.ai/share/maGBZErI</a>
+                </div>
+                <div class="session-item">
+                    <span>Reusable TablePaginator Component:</span>
+                    <a href="https://opncd.ai/share/BAlEIWJS" target="_blank">https://opncd.ai/share/BAlEIWJS</a>
+                </div>
+                <div class="session-item">
+                    <span>Fix Redundant Functions:</span>
+                    <a href="https://opncd.ai/share/4QiJP3uF" target="_blank">https://opncd.ai/share/4QiJP3uF</a>
+                </div>
+                <div class="session-item">
+                    <span>Fix Projects Page UI & Layout Issues:</span>
+                    <a href="https://opncd.ai/share/TQI42njL" target="_blank">https://opncd.ai/share/TQI42njL</a>
+                </div>
+                <div class="session-item">
+                    <span>Fix Position Duplication & Seeder Refactor:</span>
+                    <a href="https://opncd.ai/share/3a5lgETh" target="_blank">https://opncd.ai/share/3a5lgETh</a>
+                </div>
+                <div class="session-item">
+                    <span>Fix Export CSV Missing Query:</span>
+                    <a href="https://opncd.ai/share/WbGgjNji" target="_blank">https://opncd.ai/share/WbGgjNji</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 1. PLAN -->
+    <section>
+        <h2>1. Plan and architectural evolution</h2>
+
+        <div class="card">
+            <div class="card-title">Initial Conception vs. Final Architecture</div>
+            <p><strong>Initial Scope:</strong> The project was initially conceived with basic multi-user authentication where users directly managed a global list of keywords.</p>
+            <p><strong>Strategic Pivot:</strong> Real-world SEO rank tracking demands domain-level organization. We refactored the relational hierarchy to a 3-tier architecture: <code>1 User &rarr; Many Projects &rarr; Many Keywords &rarr; Daily Position History (30 Days)</code>.</p>
+            
+            <div class="features-list">
+                <div class="feature-box">
+                    <h4>Authentication</h4>
+                    <ul>
+                        <li>Secure Sign In & Log In</li>
+                        <li>Bcrypt password hashing</li>
+                        <li>Session auth & CSRF protection</li>
+                    </ul>
+                </div>
+                <div class="feature-box">
+                    <h4>Projects Dashboard</h4>
+                    <ul>
+                        <li>Project CRUD</li>
+                        <li>Archived project view mode</li>
+                        <li>Safe project deletion</li>
+                    </ul>
+                </div>
+                <div class="feature-box">
+                    <h4>Project Details & SEO</h4>
+                    <ul>
+                        <li>Add & edit keywords</li>
+                        <li>30-Day history generation</li>
+                        <li>Today's simulated refresh</li>
+                        <li>Position history table & charts</li>
+                    </ul>
+                </div>
+                <div class="feature-box">
+                    <h4>Metrics & Export</h4>
+                    <ul>
+                        <li>Total keywords metric</li>
+                        <li>Top 3 best-ranked keywords</li>
+                        <li>Best 7-day trend card</li>
+                        <li>CSV Export</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Key Architectural Decisions</div>
+            <ul>
+                <li><strong>Migration from Tailwind CSS to Clean Native CSS:</strong> Removed build-step complexity and bloated utility classes by adopting a handcrafted CSS design system with CSS custom properties (variables) for consistent theming and high performance.</li>
+                <li><strong>Reusable Client-Side TablePaginator:</strong> Implemented a modular Vanilla JS class (<code>TablePaginator</code>) to handle client-side pagination, sorting, and live DOM rendering without third-party libraries.</li>
+                <li><strong>Decoupling Seeder (M2) from Live Simulation (M3):</strong> Separated 30-day historical data generation (CLI/UI seeder in <code>libraries/seeder.php</code>) from the daily position update (<code>ajax/refresh-positions.php</code>), strictly enforcing one record per keyword per calendar day via <code>UNIQUE(keyword_id, date)</code>.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <div class="card-title">What I Would Change in Hindsight</div>
+            <p>I would establish the exact database schema constraints (such as <code>UNIQUE(keyword_id, date)</code> and explicit SQL integer casting) right from the start. Transitioning from user-owned keywords to project-owned keywords midway required refactoring both backend queries and frontend JS state management simultaneously.</p>
+        </div>
+    </section>
+
+    <!-- 2. PROMPTS & FIXES -->
+    <section>
+        <h2>2. Prompts & Fixes</h2>
+
+        <!-- Prompt 1: The Failing One -->
+       <div class="card">
+    <span class="badge badge-danger">Case Study: UI Misinterpretation & Iterative Recovery (2 Fails &rarr; 1 Fix)</span>
+    <div class="card-title">Keyword Statistics: From Inline Text Clutter to Reusable Stat Cards</div>
+
+    <p><strong>The Core Challenge:</strong> Displaying aggregated keyword metrics (Total Keywords, Top Keywords, Best 30-Day Trend). This required 3 prompt iterations because the AI interpreted UI layout instructions literally rather than recognizing standard dashboard card components.</p>
+
+    <!-- Attempt 1 -->
+    <div style="margin: 1rem 0; padding: 0.75rem 1rem; background: rgba(248, 113, 113, 0.08); border-left: 3px solid var(--danger); border-radius: 4px;">
+        <strong style="color: var(--danger);">Iteration 1 (Failed UX): Stats Crammed Inside Dashboard Table Rows</strong>
+        <pre><strong>User Prompt:</strong>
+Feature: Enhance the Projects table in the Dashboard to display rich keyword statistics directly underneath each project's name.
+
+Instructions:
+- Modify the project fetch logic (using subqueries, JOINs, or a secondary mapping loop) to append the following data to each project: Total Keywords - The exact count of keywords attached to the project; Top 5 Keywords - list (array or JSON) of up to 5 keywords with the best (lowest) current ranking position > 0; Best Trending Keyword - The keyword with the most positive trend in the last 30 days.
+- Inject this enriched data into the window.__PROJECTS_DATA__ array for frontend rendering.
+- When a completely new project is added via AJAX, ensure the JavaScript dynamically inserts the new project object with default values (Total Keywords: 0) so the renderer does not throw undefined errors."</pre>
+        <p><strong>AI Execution:</strong> The AI implemented batch subqueries in <code>enrichProjectsWithStats()</code>, but rendered a dense text block (<code>.project-keyword-stats</code>) directly inside the table cell under the project title (e.g. <em>"Top: seo tools (#3) | Trending: rank tracker"</em>). This overloaded the dashboard table and broke scannability.</p>
+    </div>
+
+    <!-- Attempt 2 -->
+    <div style="margin: 1rem 0; padding: 0.75rem 1rem; background: rgba(251, 191, 36, 0.08); border-left: 3px solid var(--warning); border-radius: 4px;">
+        <strong style="color: var(--warning);">Iteration 2 (Failed UI Format): Inline Text Header Next to Project Title</strong>
+        <pre><strong>User Prompt:</strong>
+"UI Refactor: Move Project Keyword Metrics from Dashboard Table to Project Details Page
+
+Remove the keyword summary metrics (total keywords, top 5 keywords, and best trend) from the main Dashboard projects table and move them to the Project Details page (Project.php).
+
+Instructions:
+- Clean up dashboard table
+- Add summary metrics to project details header: display these metrics directly underneath the project name/header at the top of the Project Details view
+- Aggregate these statistics in `Project.php` based on the project's current keywords and their position history
+- Ensure these header summary metrics update dynamically via JavaScript whenever a keyword is added, edited, or deleted without requiring a full page refresh"</pre>
+        <p><strong>AI Mistake:</strong> While it successfully cleaned the dashboard and added <code>ajax/get-project-stats.php</code>, it literally inserted a group of inline <code>&lt;span&gt;</code> tags (<code>.project-metrics</code>) right next to the project title and status badge (<em>"Project Name [Active] 9 keywords Top: seo tools (#3)"</em>) instead of building dedicated visual metric cards.</p>
+    </div>
+
+    <!-- Attempt 3 -->
+    <div style="margin: 1rem 0; padding: 0.75rem 1rem; background: rgba(52, 211, 153, 0.08); border-left: 3px solid var(--success); border-radius: 4px;">
+        <strong style="color: var(--success);">Iteration 3 (Resolved): Explicit Component Hierarchy & 3-Column Grid</strong>
+        <pre><strong>User Prompt:</strong>
+"UI Refactor: convert project metrics into 3 summary stat cards (matching Dashboard style)
+
+In `Project.php`, the keyword statistics are currently crammed as an inline text string next to the project title. Remove that text and place the metrics inside a 3-column grid of dedicated stat cards, identical in style to the summary cards on `Dashboard.php`.
+
+Instructions:
+- Remove the inline metadata text (9 keywords Top: ...) next to the project title and status badge.
+- Create reusable `.display-cards` component for dashboard  and project pages
+- Keep JS counters in sync with this unified markup when keywords or projects are added/edited/deleted."</pre>
+        <p><strong>Result & Solution:</strong> The AI removed the inline clutter and generated a unified 3-column <code>.stat-grid</code> with <code>.stat-card</code> elements (<strong>Total Keywords</strong>, <strong>Top Keyword</strong>, <strong>30-Day Trending</strong>) sharing identical styles between `Dashboard.php` and `Project.php`, with dynamic client-side re-computation in <code>updateProjectMetrics()</code>.</p>
+    </div>
+
+    <div style="margin-top: 1rem;">
+        <strong>Root Cause & Key Takeaway:</strong>
+        <ul>
+            <li><strong>Literal Prompt Traps:</strong> Phrases like <em>"underneath the project name"</em> cause the AI to attach DOM elements to the existing title container rather than designing a new visual layout section.</li>
+            <li><strong>Design Language Precision:</strong> Specifying structural component terms (<em>"3-column grid"</em>, <em>".stat-card component"</em>, <em>"match Dashboard card pattern"</em>) eliminated ambiguity and produced clean, reusable CSS on the first try.</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card">
+    <span class="badge badge-success">Prompt: First-Pass Success (Clean CSS Design System Migration)</span>
+    <div class="card-title">Eliminating Utility Class Bloat with a Dedicated Semantic CSS Architecture</div>
+
+    <p><strong>Context:</strong> The templates originally relied on cluttered, inline utility classes (Tailwind-style) that made PHP views hard to maintain and caused layout inconsistencies. The goal was to migrate to a bespoke, modular Vanilla CSS stylesheet (<code>assets/styles.css</code>) with a strict brand color palette.</p>
+
+    <pre><strong>User Prompt:</strong>
+"Read the project specification and rules specified in AGENTS.md file. 
+
+Refactor the styling across the application to move away from long utility class strings and use dedicated, clean vanilla CSS classes defined in a stylesheet (e.g., assets/css/styles.css or styles.css).
+
+Design and color palette specifications:
+1. Primary color: #5A2A27 - for main headers, primary CTA buttons, active states, active tab highlights, and key brand elements
+2. Secondary color: #C4BBAF - for subtle card borders, background accents, table headers, and neutral hover states
+3. Success / Confirm buttons: #16A34A / #15803D (Hover) — for "Save", "Create", "Confirm", and success badges
+4. Danger / Delete buttons: #DC2626  / #B91C1C (Hover) — for "Delete", "Archive", 'Declined' trend and danger alerts
+5. Backgrounds and text: Clean off-white/light-neutral background (#F9F8F6), white card containers, dark text (#1F2937) with high contrast and modern typography.
+
+Instructions:
+1. Define reusable CSS classes for all common UI components: buttons, cards, tables and pagination, modals and forms
+2. Ensure the design is fully responsive, clean, and modern with smooth transitions (`transition: all 0.2s ease`)
+3. Replace cluttered inline utility classes across `Dashboard.php`, `Project.php`, `Position.php`, and `header.php`/`footer.php` with the new semantic CSS classes."</pre>
+    <div class="card">
+        <span class="badge badge-success">Prompt: First-Pass Success (Reusable TablePaginator Component)</span>
+        <div class="card-title">Decoupling Client-Side State with a Generic Vanilla JS TablePaginator Class</div>
+
+        <p><strong>Context:</strong> As keyword and project counts grow, rendering large unstructured tables degrades performance and UX scannability. Instead of writing ad-hoc, duplicated pagination logic in separate view scripts, the objective was to implement an Object-Oriented, reusable client-side pagination engine (<code>TablePaginator</code>) with standard 10-item chunking, zero-indexed row counters, and dynamic search/filter reset.</p>
+
+        <pre><strong>User Prompt:</strong>
+"Read the project specification and rules specified in AGENTS.md file. 
+
+Create a generic, reusable JavaScript pagination helper class (`TablePaginator`) and implement it across all data tables in the application (Dashboard and Keyword Details page) with 10 items per page and row indexing.
+
+Instructions:
+1. Row Indexing: Add a # index column as the first column in the table header and body.
+2. Pagination logic (10 items per page): Add a currentPage property (default 1) and pageSize = 10 to the JavaScript state object. eset currentPage = 1 whenever the user searches or changes the filter/sort criteria.
+3. Pagination UI: Render pagination controls below the table - an info label ("page 1 of 45"), previous button (disabled on page 1), numbered page buttons (highlight the active page), next button (disabled on the last page); disable pagination controls when total items are less then 10 or no keywords are found 
+4. Reusable Helper Class: Create the class to accept configuration options - tableBody (DOM element), paginationContainer(DOM element), pageSize(default 10), renderRow() (callback function returning the HTML string for a single <tr>) ; provide public methods - setData() (sets new data, resets current page, re-render), goToPage() (navigated toa specific page), render() (calculates slices, draws rows, updates controls); handle empty datasets cleanly 
+Ensure smooth integration with existing features. "</pre>
+
+    </div>
+</div>
+    </section>
+
+    <!-- 3. RETROSPECTIVE -->
+    <section>
+        <h2>3. Retrospective</h2>
+
+        <div class="card">
+            <div class="card-title">Key Learnings & What I Would Do Differently</div>
+            <ul>
+                <li>
+                    <strong>Strict Baseline Milestone Discipline over Feature Creep:</strong> 
+                    Early in the project, I became heavily focused on implementing extensive architectural features. Because of this deep dive into extra features, I only realized late in the cycle that the baseline brief required a strict separation between <strong>M2 (30-Day History Seeder)</strong> and <strong>M3 (Today's Live Position Simulation via AJAX)</strong>. In hindsight, I would validate and lock in every mandatory milestone requirement first before expanding the scope with nice-to-have features.
+                </li>
+                <li>
+                    <strong>Schema Constraints & Frozen Migrations Early:</strong> 
+                    Enforcing database constraints early prevents messy data cleanup, deduplication scripts, and runtime SQLite migration pitfalls midway through development.
+                </li>
+                <li>
+                    <strong>Early Uniform API & Data Contracts:</strong> 
+                    Standardizing whether frontend AJAX endpoints communicate via raw JSON or <code>FormData</code> from day one eliminates unexpected <code>400 Bad Request</code> responses and empty <code>$_POST</code> payloads.
+                </li>
+                <li>
+                    <strong>Critical AI Supervision & Code Auditing:</strong> 
+                    AI agents tend to create duplicate helper functions across different endpoints when tasked with incremental features. Actively reviewing, pruning, and consolidating duplicate methods keeps the codebase lean, DRY, and maintainable.
+                </li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Time Spent Breakdown</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Category / Module</th>
+                        <th style="width: 160px; text-align: right;">Time Spent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Project Architecture & Auth</strong></td>
+                        <td style="text-align: right;">2.5 hours</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Seeder & Position History</strong></td>
+                        <td style="text-align: right;">2.0 hours</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Dashboard, Project Page & Keywords Page</strong></td>
+                        <td style="text-align: right;">4.0 hours</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Bug Fixes</strong></td>
+                        <td style="text-align: right;">2.0 hours</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Documentation</strong></td>
+                        <td style="text-align: right;">1.0 hour</td>
+                    </tr>
+                    <tr style="background: rgba(255, 255, 255, 0.05); font-weight: bold;">
+                        <td><strong>Total Time Spent</strong></td>
+                        <td style="text-align: right; color: var(--primary);"><strong>11.5 hours</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+
+</body>
+</html>
