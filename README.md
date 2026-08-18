@@ -36,7 +36,9 @@ php -S localhost:8000
 
 ### 3. Log In
 
-Open `http://localhost:8000` in your web browser. Email: `admin@minirank.local`
+Open `http://localhost:8000` in your web browser. 
+
+- Test email: `admin@minirank.local` 
 
 
 ## Project Structure
