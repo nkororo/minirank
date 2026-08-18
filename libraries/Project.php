@@ -65,8 +65,9 @@ class Project
             : '<span class="badge badge-success">Active</span>';
         $domainDisplay = $project['domain'] !== '' ? ' <span class="project-domain">(' . sanitize($project['domain']) . ')</span>' : '';
 
-        /* Fetch keyword statistics for this project */
+        /* Fetch keyword statistics and full keyword list for this project */
         $kwStats = getProjectKeywordStats($projectId);
+        $keywords = getKeywordsWithPositions($projectId);
 
         /* Build top 3 display */
         $fallback = 'not enough data';
@@ -241,7 +242,8 @@ class Project
         </div>
 
         <script>window.__PROJECT_ID__ = ' . (int) $projectId . ';</script>
-        <script>window.__PROJECT_STATS__ = ' . json_encode($kwStats) . ';</script>';
+        <script>window.__PROJECT_STATS__ = ' . json_encode($kwStats) . ';</script>
+        <script>window.__KEYWORDS_DATA__ = ' . json_encode($keywords) . ';</script>';
     }
 
     /**

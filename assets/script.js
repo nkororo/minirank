@@ -549,5 +549,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    loadKeywords();
+    /* Use server-injected keyword data on page load; fall back to AJAX */
+    if (window.__KEYWORDS_DATA__ && window.__KEYWORDS_DATA__.length > 0) {
+        state.allKeywords = window.__KEYWORDS_DATA__;
+        renderTable();
+    } else {
+        loadKeywords();
+    }
 });
